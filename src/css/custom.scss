@@ -1,0 +1,365 @@
+// CSS for overriding default Quasar components
+:root {
+  --pl-border-color: #e2e2ea;
+
+  --disabled-input-color: #000000;
+  --disabled-input-bg: #f1f1f5;
+}
+
+.pl-btn,
+.pl-btn-icn {
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: none;
+  height: 50px;
+}
+
+.pl-btn,
+.pl-btn:before,
+.pl-btn.q-btn--actionable.q-btn--standard:active:before,
+.pl-btn.q-btn--actionable.q-btn--standard.q-btn--active:before,
+.pl-btn-icn,
+.pl-btn-icn:before,
+.pl-btn-icn.q-btn--actionable.q-btn--standard:active:before,
+.pl-btn-icn.q-btn--actionable.q-btn--standard.q-btn--active:before {
+  box-shadow: none;
+}
+
+.pl-btn {
+  padding: 16px 29px;
+  line-height: normal;
+}
+
+.pl-btn-icn {
+  padding: 16px 14px;
+  .q-btn__content {
+    margin-top: -2px;
+  }
+}
+
+.pl-input {
+  font-size: 16px;
+  font-weight: 400;
+  color: #000;
+
+  .q-field__control {
+    height: inherit;
+    border-radius: 10px;
+    padding: 0px;
+  }
+
+  .q-field__control:before {
+    border: 2px solid var(--pl-border-color) !important;
+  }
+
+  .q-field__native {
+    padding: 12px 15px;
+    height: 50px !important;
+  }
+
+  .q-field__native::placeholder,
+  .q-placeholder::placeholder {
+    color: #a1a1ac !important;
+  }
+
+  .q-field__native:read-only,
+  .q-field__native:disabled {
+    border: 2px solid var(--pl-border-color);
+    background-color: var(--disabled-input-bg);
+    color: var(--disabled-input-color);
+    border-radius: 10px;
+  }
+
+  .q-field__marginal {
+    margin-right: 16px;
+    height: unset;
+  }
+
+  .q-field__prepend {
+    margin-left: 16px;
+    padding-right: 0px;
+    margin-right: 0px;
+    height: unset;
+  }
+}
+
+.pl-prefix-input {
+  .q-field__prefix {
+    padding-left: 15px;
+  }
+  .q-field__native {
+    padding: 12px 15px 12px 5px;
+  }
+}
+
+.pl-raw-input {
+  font-size: 16px;
+  font-weight: 400;
+  color: #000;
+  padding: 12px 15px;
+  height: 50px !important;
+  border-radius: 10px;
+  outline: none;
+  box-sizing: border-box;
+  border: 2px solid var(--pl-border-color);
+  transition: 0.25s;
+}
+.pl-raw-input:focus,
+.pl-raw-input:active {
+  border: 2px solid var(--q-primary);
+}
+.pl-raw-input::placeholder {
+  color: #b5b5be !important;
+}
+
+.pl-raw-input:disabled {
+  background-color: var(--disabled-input-bg);
+  color: var(--disabled-input-color);
+}
+
+.pl-raw-input-unsized {
+  font-size: 16px;
+  font-weight: 400;
+  color: #000;
+  padding: 12px 15px;
+  border-radius: 10px;
+  outline: none;
+  box-sizing: border-box;
+  border: 2px solid var(--pl-border-color);
+}
+.pl-raw-input-unsized:focus,
+.pl-raw-input-unsized:active {
+  border: 2px solid var(--q-primary);
+}
+.pl-raw-input:disabled {
+  background-color: var(--disabled-input-bg);
+  color: var(--disabled-input-color);
+}
+
+.pl-select {
+  height: 50px;
+  color: #000;
+  .q-field__native,
+  .q-field__control,
+  .q-field--auto-height,
+  .q-field__append,
+  .q-field__marginal {
+    height: 50px;
+    min-height: auto !important;
+  }
+
+  .q-icon {
+    color: #d5d5dc;
+  }
+
+  .q-field__marginal {
+    font-size: 30px;
+  }
+
+  .q-field__control {
+    border-radius: 10px;
+  }
+
+  .q-field__control:before {
+    border: 2px solid var(--pl-border-color) !important;
+  }
+}
+
+.pl-n-select {
+  color: #000;
+  font-size: 16px;
+  padding: 12px 30px 12px 15px;
+  border-radius: 10px;
+  border: 2px solid var(--pl-border-color);
+  background: url(data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0Ljk1IDEwIj48ZGVmcz48c3R5bGU+LmNscy0xe2ZpbGw6bm9uZTt9LmNscy0ye2ZpbGw6I0MyQzJDMjt9PC9zdHlsZT48L2RlZnM+PHRpdGxlPmFycm93czwvdGl0bGU+PHJlY3QgY2xhc3M9ImNscy0xIiB3aWR0aD0iNC45NSIgaGVpZ2h0PSIxMCIvPjxwb2x5Z29uIGNsYXNzPSJjbHMtMiIgcG9pbnRzPSIyLjU0IDQuMzMgMS40OCA1LjgyIDAuNDEgNC4zMyAyLjU0IDQuMzMiLz48L3N2Zz4=)
+    no-repeat 100% 50%;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+  transition: ease-in-out 0.25s;
+  -webkit-transition: ease-in-out 0.25s;
+  -moz-transition: ease-in-out 0.25s;
+  -o-transition: ease-in-out 0.25s;
+  option {
+    color: #000;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+      Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif !important;
+  }
+}
+
+.pl-n-select:active,
+.pl-n-select:focus {
+  border: 2px solid var(--q-primary);
+}
+
+.pl-table {
+  font-size: 16px;
+  max-height: 800px;
+
+  .q-table__top,
+  .q-table__bottom,
+  thead tr:first-child th {
+    /* bg color is important for th; just specify one */
+    background-color: #fff;
+
+    th {
+      padding: 0px 6px;
+    }
+  }
+
+  thead tr th {
+    position: sticky;
+    z-index: 1;
+    text-transform: uppercase;
+    font-size: 12px;
+    color: #b5b5be;
+    font-weight: 600;
+    padding: 0px 6px;
+  }
+
+  thead tr:first-child th {
+    top: 0;
+  }
+
+  /* this is when the loading indicator appears */
+  &.q-table--loading thead tr:last-child th {
+    /* height of all previous header rows */
+    top: 48px;
+  }
+
+  tbody {
+    td {
+      font-size: 16px;
+      padding: 17px 6px;
+    }
+    tr::before,
+    td::before {
+      background-color: unset;
+    }
+  }
+
+  tbody td,
+  thead th {
+    border-color: var(--light-grey) !important;
+  }
+}
+
+.q-table__bottom {
+  border-top: 0px;
+}
+
+.pl-card {
+  border-radius: 20px !important;
+  background-color: #fff !important;
+  border: 1px solid var(--pl-border-color);
+
+  .pl-card-title {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--pl-border-color);
+    font-size: 18px;
+    font-weight: 600;
+    height: 78px;
+    padding: 0px 25px;
+  }
+}
+
+.pl-stack-input {
+  .sl-input {
+    width: 100%;
+  }
+  .sl-label {
+    width: 100%;
+    font-size: 14px;
+    line-height: 21px;
+    margin-bottom: 3px;
+    display: flex;
+  }
+}
+
+.pl-drawer-page {
+  max-width: 1200px;
+  padding: 28px;
+  margin: 0 auto;
+}
+
+.pl-min-width {
+  min-width: var(--pl-min-width) !important;
+}
+
+.pl-radio {
+  svg > path:first-child {
+    fill: #d3d3da;
+  }
+}
+
+.pl-checkbox {
+  .q-checkbox__bg {
+    border: 2px solid #d3d3da;
+    border-radius: 4px;
+  }
+
+  .q-checkbox__inner {
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+
+    // Hide the hover circle on checkboxes
+    &:before {
+      display: none;
+    }
+  }
+
+  .q-checkbox__inner--truthy {
+    .q-checkbox__bg {
+      border: 2px solid $primary;
+    }
+
+    .q-checkbox__svg {
+      width: 12px !important;
+      height: 12px !important;
+      top: 3px;
+      left: 3px;
+    }
+  }
+}
+
+.pl-unset-height {
+  min-height: unset !important;
+  min-height: calc(100vh - 50px) !important;
+}
+
+.pl-error-notification,
+.pl-success-notification {
+  max-width: 320px;
+}
+
+// Resolve strange darkening bug when any dialog is opened
+.q-body--prevent-scroll {
+  position: unset !important;
+}
+
+.pl-row-actions {
+  border-radius: 10px;
+  .q-list {
+    min-width: 230px;
+    border-radius: 10px;
+    .q-item {
+      padding: 14px 30px;
+    }
+  }
+}
+
+.pl-tabs-row {
+  height: 100%;
+  font-size: 16px;
+  max-width: 100%;
+  .q-tab__label {
+    font-size: 16px;
+  }
+  .q-tab__indicator {
+    height: 3px;
+  }
+}
