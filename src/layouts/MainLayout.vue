@@ -43,11 +43,11 @@
 </template>
 
 <script>
-import { defineComponent, onMounted, ref, computed } from 'vue'
+import { defineComponent, ref, computed, onBeforeMount } from 'vue'
 import { useRoute } from 'vue-router'
 import PopupMenu from 'src/components/layout/PopupMenu'
 import Plexus from 'src/api'
-import UserData from 'src/modules/UserData'
+import Team from 'src/api/models/Team'
 
 export default defineComponent({
   name: 'MainLayout',
@@ -64,10 +64,16 @@ export default defineComponent({
       return route?.meta?.title
     })
 
-    onMounted(async () => {
+    onBeforeMount(async () => {
       user.value = await Plexus.Auth.getUserData()
-      team.value = await UserData.getCurrentTeam()
+      const teams = await Team.getForUser()
+      await Team.setTeamsCache(teams)
+      if (teams.length) {
+        await Team.setCurrentTeam(teams[0])
+      }
+      team.value = await Team.getCurrentTeam()
     })
+
     return {
       pageTitle,
       user,

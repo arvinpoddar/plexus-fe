@@ -17,6 +17,7 @@
         <q-item-section>My Account</q-item-section>
       </q-item>
       <q-item
+        v-if="activeTeam"
         clickable
         v-close-popup
         :to="`/team/${activeTeam.id}`"
@@ -60,30 +61,20 @@
 import { defineComponent, onMounted, ref } from 'vue'
 import useNotify from 'src/composables/notify'
 import { logout } from 'src/modules/Utils'
-import UserData from 'src/modules/UserData'
+import Team from 'src/api/models/Team'
 
 export default defineComponent({
   name: 'PopupMenu',
   setup () {
     const { showError } = useNotify()
 
-    const teams = ref([
-      {
-        id: 1,
-        name: 'Team 1'
-      },
-      {
-        id: 2,
-        name: 'Team 2'
-      }
-    ])
-
+    const teams = ref([])
     const activeTeam = ref(null)
 
     const setCurrentTeam = async (team) => {
       if (team.id !== activeTeam.value.id) {
         try {
-          await UserData.setCurrentTeam(team)
+          await Team.setCurrentTeam(team)
           window.location.reload('/app')
         } catch (err) {
           showError(err, 'Could not switch organizations')
@@ -92,13 +83,8 @@ export default defineComponent({
     }
 
     onMounted(async () => {
-      const curr = await UserData.getCurrentTeam()
-      console.log(curr)
-      if (!curr) {
-        await UserData.setTeams(teams.value)
-        await UserData.setCurrentTeam(teams.value[0])
-      }
-      activeTeam.value = await UserData.getCurrentTeam()
+      teams.value = await Team.getTeamsCache()
+      activeTeam.value = await Team.getCurrentTeam()
       console.log(activeTeam.value)
     })
 

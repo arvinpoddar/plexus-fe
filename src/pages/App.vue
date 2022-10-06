@@ -3,14 +3,14 @@
 </template>
 
 <script>
-import Plexus from 'src/api'
+import Team from 'src/api/models/Team'
 import { defineComponent, onBeforeMount } from 'vue'
 
 export default defineComponent({
   setup () {
     onBeforeMount(async () => {
       // const user = await Plexus.Auth.getUserData()
-      const res = await Plexus.API.get('/teams')
+      const res = await Team.getForUser()
       console.log(res)
     })
   }

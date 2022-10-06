@@ -74,7 +74,6 @@ export default defineComponent({
         loading.value = true
         const newUser = new User(userBuffer)
         const res = await newUser.create()
-        console.log(res)
         await Plexus.Auth.setUserData(res)
         router.push({ name: 'app' })
       } catch (err) {
@@ -88,7 +87,6 @@ export default defineComponent({
       try {
         loading.value = true
         const googleAuthData = await Plexus.Auth.getGoogleData()
-        console.log(googleAuthData)
         userBuffer.first_name = googleAuthData.given_name
         userBuffer.last_name = googleAuthData.family_name
         userBuffer.email = googleAuthData.email

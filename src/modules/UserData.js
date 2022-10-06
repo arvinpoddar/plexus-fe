@@ -1,29 +1,6 @@
-import Storage from 'src/modules/Storage'
 import { ROLES, USER_PERMISSION_RINGS } from 'src/modules/constants'
 
-const ACTIVE_TEAM = 'active_team'
-const ALL_TEAMS = 'teams'
-
 export class UserData {
-  static async getTeams () {
-    const data = await Storage.getValue(ALL_TEAMS)
-    return data
-  }
-
-  static async setTeams (teams) {
-    return await Storage.setValue(ALL_TEAMS, teams)
-  }
-
-  static async setCurrentTeam (team) {
-    const res = await Storage.setValue(ACTIVE_TEAM, team)
-    return res
-  }
-
-  static async getCurrentTeam () {
-    const activeOrg = await Storage.getValue(ACTIVE_TEAM)
-    return activeOrg
-  }
-
   static async getRole () {
     const isSuperAdmin = await this.isSuperAdmin()
     if (isSuperAdmin) {

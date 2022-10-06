@@ -1,7 +1,5 @@
-// import Plexus from 'src/api'
-
 import { strictAssign } from 'src/modules/Utils'
-import Plexus from '..'
+import Plexus from 'src/api'
 
 class User {
   constructor (params) {
@@ -16,16 +14,16 @@ class User {
 
   static async verify (email) {
     const res = await Plexus.API.get('/users/verify', { email })
-    return res.id ? res : null
+    return res.id ? new User(res) : null
   }
 
   async verify () {
     const res = await Plexus.API.get('/users/verify', { email: this.email })
-    return res.id ? res : null
+    return res.id ? new User(res) : null
   }
 
   async create () {
-    return await Plexus.API.post('/users', this)
+    return new User(await Plexus.API.post('/users', this))
   }
 }
 
