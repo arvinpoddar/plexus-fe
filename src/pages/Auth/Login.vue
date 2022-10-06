@@ -24,6 +24,7 @@
 <script>
 import { defineComponent, onMounted, ref } from 'vue'
 import Plexus from 'src/api'
+import User from 'src/api/models/User'
 import { logout } from 'src/modules/Utils'
 import useNotify from 'src/composables/notify'
 import { useRouter } from 'vue-router'
@@ -38,8 +39,15 @@ export default defineComponent({
     const handleOnSuccess = async (response) => {
       try {
         loading.value = true
-        await Plexus.Auth.requestToken(response.code)
-        router.push({ name: 'app' })
+        const googleUser = await Plexus.Auth.requestToken(response.code)
+        const plexusUser = await User.verify(googleUser.email)
+        console.log(plexusUser)
+        if (!plexusUser) {
+          router.push({ name: 'join' })
+        } else {
+          Plexus.Auth.setUserData(plexusUser)
+          router.push({ name: 'app' })
+        }
       } catch (err) {
         showError(err)
       } finally {
@@ -57,7 +65,6 @@ export default defineComponent({
     })
 
     const isAuthenticated = ref(false)
-
     onMounted(async () => {
       isAuthenticated.value = await Plexus.Auth.isAuthenticated()
       console.log(await Plexus.Auth.isAuthenticated())

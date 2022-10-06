@@ -24,7 +24,7 @@
         <div class="user-info row items-center cursor-pointer">
           <div class="user-titles col">
             <div class="ellipsis user-name" v-if="user">
-              {{ user.name }}
+              {{ user.first_name }} {{ user.last_name }}
             </div>
             <div class="ellipsis user-org" v-if="team">
               {{ team.name }}

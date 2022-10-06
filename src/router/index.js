@@ -35,8 +35,10 @@ export default route(function (/* { store, ssrContext } */) {
   Router.beforeEach(async (to, from, next) => {
     const banRedirect = { path: '/unsupported', query: { ref: to.name } }
     const isAuthenticated = await Plexus.Auth.isAuthenticated()
+    const isRegistered = !!(await Plexus.Auth.getUserData())
     const isAdmin = false
     const requiresAuth = to.meta.requireAuth
+    const requiresRegister = to.meta.requireRegister
     const requiresAdmin = to.meta.requireAdmin
 
     if (to.path === banRedirect.path) {
@@ -46,26 +48,28 @@ export default route(function (/* { store, ssrContext } */) {
     } else if (AUTO_LOGIN_ROUTE_NAMES.includes(to.name)) {
       // AUTO LOGIN
       if (isAuthenticated) {
-        next('/app')
+        next({ name: 'app' })
       } else {
         next()
       }
-    } else if (requiresAuth && requiresAdmin) {
+    } else if (requiresAuth && requiresRegister && requiresAdmin) {
       // IS AN ADMIN PAGE
-      if (isAuthenticated && isAdmin) {
+      if (isAuthenticated && isRegistered && isAdmin) {
         next()
       } else {
         await logout()
       }
-    } else if (requiresAuth) {
+    } else if (requiresAuth && requiresRegister) {
       // IS AN AUTHENTICATED PAGE
-      if (isAuthenticated) {
+      if (isAuthenticated && isRegistered) {
         next()
+      } else if (isAuthenticated) {
+        next({ name: 'join' })
       } else {
         await logout()
       }
     } else {
-      await next()
+      next()
     }
   })
 

@@ -4,6 +4,7 @@ import * as queryString from 'query-string'
 
 import { logout, parseJwt } from 'src/modules/Utils'
 import Storage from 'src/modules/Storage'
+import User from 'src/api/models/User'
 
 export class API {
   static async get (resource, parameters = {}) {
@@ -46,38 +47,56 @@ export class API {
   }
 }
 
+const GOOGLE_AUTH_KEY = 'google_auth'
+const USER_DATA_KEY = 'user_data'
+
 export class Auth {
   static async requestToken (googleAuthCode) {
-    return axios.request({
-      url: 'token',
-      method: 'post',
-      baseURL: `${process.env.LOGIN_URL}/`,
-      data: { code: googleAuthCode },
-      headers: {
-        Accepts: 'application/json'
-      }
-    }).then((results) => {
-      Storage.setValue('user_data', results.data)
-      return results.data
-    })
-      .catch(async (error) => {
-        switch (error.response?.status) {
-          case 401:
-            await this.clearAccessToken()
-            throw error
-          default:
-            throw error
+    try {
+      const res = await axios.request({
+        url: 'token',
+        method: 'post',
+        baseURL: `${process.env.LOGIN_URL}/`,
+        data: { code: googleAuthCode },
+        headers: {
+          Accepts: 'application/json'
         }
       })
+      await Auth.setGoogleData(res.data)
+      return res.data
+    } catch (error) {
+      switch (error.response?.status) {
+        case 401:
+          await this.clearAccessToken()
+          throw error
+        default:
+          throw error
+      }
+    }
   }
 
-  static async getUserData () {
-    const data = await Storage.getValue('user_data')
+  static async setGoogleData (data) {
+    const res = await Storage.setValue(GOOGLE_AUTH_KEY, data)
+    return res || null
+  }
+
+  static async getGoogleData () {
+    const data = await Storage.getValue(GOOGLE_AUTH_KEY)
     return data || null
   }
 
+  static async setUserData (data) {
+    const res = await Storage.setValue(USER_DATA_KEY, data)
+    return res || null
+  }
+
+  static async getUserData () {
+    const data = await Storage.getValue(USER_DATA_KEY)
+    return new User(data) || null
+  }
+
   static async getAccessToken () {
-    const data = await Auth.getUserData()
+    const data = await Auth.getGoogleData()
     if (data) {
       return data.access_token || null
     }
