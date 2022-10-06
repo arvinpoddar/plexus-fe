@@ -29,11 +29,13 @@ import { logout } from 'src/modules/Utils'
 import useNotify from 'src/composables/notify'
 import { useRouter } from 'vue-router'
 import { useCodeClient } from 'vue3-google-signin'
+import useSetTeams from 'src/composables/useSetTeams'
 
 export default defineComponent({
   setup () {
     const router = useRouter()
     const { showError } = useNotify()
+    const { fetchAndCacheTeams } = useSetTeams()
 
     const loading = ref(false)
     const handleOnSuccess = async (response) => {
@@ -41,11 +43,11 @@ export default defineComponent({
         loading.value = true
         const googleUser = await Plexus.Auth.requestToken(response.code)
         const plexusUser = await User.verify(googleUser.email)
-        console.log(plexusUser)
         if (!plexusUser) {
           router.push({ name: 'join' })
         } else {
-          Plexus.Auth.setUserData(plexusUser)
+          await Plexus.Auth.setUserData(plexusUser)
+          await fetchAndCacheTeams()
           router.push({ name: 'app' })
         }
       } catch (err) {

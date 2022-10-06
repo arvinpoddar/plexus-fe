@@ -53,6 +53,14 @@ const routes = [
   },
 
   {
+    path: '/team/:id',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      { path: '', component: () => import('pages/App.vue'), name: 'manageTeam', meta: authMetaDeta('Edit Team') }
+    ]
+  },
+
+  {
     path: '/account',
     component: () => import('layouts/MainLayout.vue'),
     children: [

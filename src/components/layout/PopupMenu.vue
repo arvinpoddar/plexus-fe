@@ -10,6 +10,15 @@
       <q-item
         clickable
         v-close-popup
+        to="/app"
+        class="popup-menu-item"
+        active-class="q-item-no-link-highlighting"
+      >
+        <q-item-section>Home</q-item-section>
+      </q-item>
+      <q-item
+        clickable
+        v-close-popup
         to="/account"
         class="popup-menu-item"
         active-class="q-item-no-link-highlighting"
@@ -39,7 +48,7 @@
             'popup-menu-item': true,
             'popup-menu-item-icon': team.id === activeTeam.id,
           }"
-          @click="setCurrentTeam(team)"
+          @click="setActiveTeam(team)"
         >
           <q-item-section avatar v-if="team.id === activeTeam.id">
             <q-icon name="check" />
@@ -59,39 +68,36 @@
 
 <script>
 import { defineComponent, onMounted, ref } from 'vue'
-import useNotify from 'src/composables/notify'
+import useSetTeams from 'src/composables/useSetTeams'
 import { logout } from 'src/modules/Utils'
 import Team from 'src/api/models/Team'
 
 export default defineComponent({
   name: 'PopupMenu',
   setup () {
-    const { showError } = useNotify()
+    const { setCurrentTeam } = useSetTeams()
 
     const teams = ref([])
     const activeTeam = ref(null)
 
-    const setCurrentTeam = async (team) => {
+    const setActiveTeam = async (team) => {
       if (team.id !== activeTeam.value.id) {
-        try {
-          await Team.setCurrentTeam(team)
-          window.location.reload('/app')
-        } catch (err) {
-          showError(err, 'Could not switch organizations')
-        }
+        await setCurrentTeam(team)
       }
     }
 
     onMounted(async () => {
-      teams.value = await Team.getTeamsCache()
-      activeTeam.value = await Team.getCurrentTeam()
-      console.log(activeTeam.value)
+      teams.value = await Team.getForUser()
+      if (teams.value.length) {
+        activeTeam.value = teams.value[0]
+        await Team.setCurrentTeam(teams.value[0])
+      }
     })
 
     return {
       teams,
       activeTeam,
-      setCurrentTeam,
+      setActiveTeam,
       logout
     }
   }

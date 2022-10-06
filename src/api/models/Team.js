@@ -19,6 +19,11 @@ class Team {
 
   static async getTeamsCache () {
     const data = await Storage.getValue(ALL_TEAMS)
+    if (data == null) {
+      console.log('miss')
+      const res = await Team.getForUser()
+      await Team.setTeamsCache(res)
+    }
     return data
   }
 

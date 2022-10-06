@@ -55,11 +55,14 @@ import useNotify from 'src/composables/notify'
 import { useRouter } from 'vue-router'
 import User from 'src/api/models/User'
 import { logout } from 'src/modules/Utils'
+import useSetTeams from 'src/composables/useSetTeams'
 
 export default defineComponent({
   setup () {
     const router = useRouter()
     const { showError } = useNotify()
+    const { fetchAndCacheTeams } = useSetTeams()
+
     const loading = ref(false)
     const userBuffer = reactive({
       id: '',
@@ -75,6 +78,7 @@ export default defineComponent({
         const newUser = new User(userBuffer)
         const res = await newUser.create()
         await Plexus.Auth.setUserData(res)
+        await fetchAndCacheTeams()
         router.push({ name: 'app' })
       } catch (err) {
         showError(err)
