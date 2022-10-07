@@ -1,5 +1,5 @@
 <template>
-  <q-dialog class="pl-confirmation-modal" ref="dialog" @hide="onDialogHide">
+  <q-dialog class="pl-confirmation-modal" ref="dialogRef" @hide="onDialogHide">
     <div class="pl-card modal-sm">
       <q-card-section class="q-pa-lg">
         <div class="f-18 f-bold q-mb-md">{{ title }}</div>
@@ -39,51 +39,43 @@
 </template>
 
 <script>
-export default {
-  name: 'PLConfirmationModal',
+import { defineComponent } from 'vue'
+import { useDialogPluginComponent } from 'quasar'
+
+export default defineComponent({
+  emits: [...useDialogPluginComponent.emits],
   props: {
-    title: String,
-    text: String,
+    alert: Boolean,
     loading: Boolean,
-    alert: Boolean
+    title: String,
+    text: String
   },
-  emits: ['ok', 'hide'],
-  methods: {
-    // following method is REQUIRED
-    // (don't change its name --> "show")
-    show () {
-      this.$refs.dialog.show()
-    },
+  setup () {
+    const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } =
+      useDialogPluginComponent()
 
-    // following method is REQUIRED
-    // (don't change its name --> "hide")
-    hide () {
-      this.$refs.dialog.hide()
-    },
+    return {
+      // This is REQUIRED;
+      // Need to inject these (from useDialogPluginComponent() call)
+      // into the vue scope for the vue html template
+      dialogRef,
+      onDialogHide,
 
-    onDialogHide () {
-      // required to be emitted
-      // when QDialog emits "hide" event
-      this.$emit('hide')
-    },
+      // other methods that we used in our vue html template;
+      // these are part of our example (so not required)
+      onOKClick () {
+        // on OK, it is REQUIRED to
+        // call onDialogOK (with optional payload)
+        onDialogOK()
+        // or with payload: onDialogOK({ ... })
+        // ...and it will also hide the dialog automatically
+      },
 
-    onOKClick () {
-      // on OK, it is REQUIRED to
-      // emit "ok" event (with optional payload)
-      // before hiding the QDialog
-      this.$emit('ok')
-      // or with payload: this.$emit('ok', { ... })
-
-      // then hiding dialog
-      // this.hide()
-    },
-
-    onCancelClick () {
-      // we just need to hide the dialog
-      this.hide()
+      // we can passthrough onDialogCancel directly
+      onCancelClick: onDialogCancel
     }
   }
-}
+})
 </script>
 
 <style lang="scss">

@@ -20,11 +20,10 @@ class Team {
   static async getTeamsCache () {
     const data = await Storage.getValue(ALL_TEAMS)
     if (data == null) {
-      console.log('miss')
       const res = await Team.getForUser()
       await Team.setTeamsCache(res)
     }
-    return data
+    return data.map(t => new Team(t))
   }
 
   static async setTeamsCache (teams) {
@@ -33,16 +32,23 @@ class Team {
 
   static async setCurrentTeam (team) {
     const res = await Storage.setValue(ACTIVE_TEAM, team)
-    return res
+    return new Team(res)
   }
 
   static async getCurrentTeam () {
-    const activeOrg = await Storage.getValue(ACTIVE_TEAM)
-    return activeOrg
+    const activeTeam = await Storage.getValue(ACTIVE_TEAM)
+    return new Team(activeTeam)
+  }
+
+  static async get (id) {
+    if (id) {
+      return new Team(await Plexus.API.get(`/teams/${id}`))
+    }
+    return null
   }
 
   static async getForUser () {
-    return await Plexus.API.get('/teams')
+    return (await Plexus.API.get('/teams')).map(t => new Team(t))
   }
 
   async create () {

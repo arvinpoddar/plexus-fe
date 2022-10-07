@@ -25,6 +25,14 @@ class User {
   async create () {
     return new User(await Plexus.API.post('/users', this))
   }
+
+  async me () {
+    return new User(await Plexus.API.get('/users', this))
+  }
+
+  async update () {
+    return new User(await Plexus.API.put('/users', this))
+  }
 }
 
 export default User

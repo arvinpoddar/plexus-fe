@@ -56,7 +56,7 @@ const routes = [
     path: '/team/:id',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/App.vue'), name: 'manageTeam', meta: authMetaDeta('Edit Team') }
+      { path: '', component: () => import('pages/TeamManagement/TeamManagement.vue'), name: 'manageTeam', meta: authMetaDeta('Edit Team') }
     ]
   },
 

@@ -2,14 +2,29 @@ export const ROLES = {
   SUPER_ADMIN: 'super_admin',
   OWNER: 'owner',
   ADMIN: 'admin',
-  USER: 'user'
+  MEMBER: 'member'
 }
 
 export const ROLE_LABELS = {
   [ROLES.OWNER]: 'Owner',
   [ROLES.ADMIN]: 'Admin',
-  [ROLES.USER]: 'User'
+  [ROLES.MEMBER]: 'Member'
 }
+
+export const teamRoles = [
+  {
+    value: ROLES.OWNER,
+    label: ROLE_LABELS[ROLES.OWNER]
+  },
+  {
+    value: ROLES.ADMIN,
+    label: ROLE_LABELS[ROLES.ADMIN]
+  },
+  {
+    value: ROLES.MEMBER,
+    label: ROLE_LABELS[ROLES.MEMBER]
+  }
+]
 
 export const USER_PERMISSION_RINGS = {
   [ROLES.SUPER_ADMIN]: 1000000,

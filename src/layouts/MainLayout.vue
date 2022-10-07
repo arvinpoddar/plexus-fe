@@ -12,11 +12,21 @@
         </q-toolbar-title>
 
         <q-btn
+          v-if="team"
           label="New Doc"
-          class="pl-btn"
+          class="pl-btn q-mr-sm"
           color="primary"
           no-wrap
           to="/new-doc"
+        />
+
+        <q-btn
+          v-if="team"
+          icon="settings"
+          class="pl-btn-icn"
+          color="primary"
+          no-wrap
+          :to="`/team/${team.id}`"
         />
 
         <q-separator vertical class="q-mx-md" />

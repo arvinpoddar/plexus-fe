@@ -1,43 +1,44 @@
 <template>
-  <!--
-  <q-page class="ig-drawer-page">
+  <q-page v-if="loadingUser" class="pl-drawer-page">
     <PageLoader />
   </q-page>
--->
-  <q-page class="pl-drawer-page pl-unset-height documents-layout">
-    <q-form class="pl-card">
+  <q-page v-else class="pl-drawer-page pl-unset-height teams-layout">
+    <q-form class="pl-card" @submit="saveUser">
       <div class="pl-card-title">Edit your Account</div>
 
       <div class="q-pa-lg">
         <PLFieldInput
-          v-model="newUser.email"
+          v-model="userBuffer.email"
           class="q-mb-md"
           field="Email*"
           required
           readonly
         />
         <PLFieldInput
-          v-model="newUser.first_name"
+          v-model="userBuffer.first_name"
           class="q-mb-md"
           field="First Name*"
           required
         />
         <PLFieldInput
-          v-model="newUser.last_name"
+          v-model="userBuffer.last_name"
           class="q-mb-md"
           field="Last Name*"
           required
         />
         <div>
           <PLTextArea
-            v-model="newUser.bio"
+            v-model="userBuffer.bio"
             class="q-mb-md"
             field="Bio"
             maxlength="140"
             :minHeight="100"
           >
             <template v-slot:label>
-              <PLCharacterCount :length="newUser.bio.length" :maxlength="140" />
+              <PLCharacterCount
+                :length="userBuffer.bio.length"
+                :maxlength="140"
+              />
             </template>
           </PLTextArea>
         </div>
@@ -46,7 +47,7 @@
           class="pl-btn"
           color="primary"
           type="submit"
-          :loading="loading"
+          :loading="savingUser"
         />
       </div>
     </q-form>
@@ -56,80 +57,68 @@
 <script>
 import { defineComponent, onMounted, ref, reactive } from 'vue'
 import Plexus from 'src/api'
-import { logout } from 'src/modules/Utils'
+import User from 'src/api/models/User'
+import { strictAssign } from 'src/modules/Utils'
 import useNotify from 'src/composables/notify'
-// import { useRouter } from 'vue-router'
-import { useCodeClient } from 'vue3-google-signin'
-import PLFieldInput from 'src/components/global/PLFieldInput.vue'
 
 export default defineComponent({
   setup () {
     // const router = useRouter()
-    const { showError } = useNotify()
+    const { showError, showSuccess } = useNotify()
 
-    const loading = ref(false)
-    const verifiedGoogleUser = ref(false)
-    const notExistingUser = ref(true)
-    const newUser = reactive({
-      email: '',
-      first_name: '',
-      last_name: '',
-      bio: ''
-    })
-    const handleOnSuccess = async (response) => {
+    const userBuffer = reactive(
+      new User({
+        id: '',
+        email: '',
+        first_name: '',
+        last_name: '',
+        bio: ''
+      })
+    )
+
+    const loadingUser = ref(false)
+    const getUser = async () => {
       try {
-        loading.value = true
-        verifiedGoogleUser.value = true
-        const res = await Plexus.Auth.requestToken(response.code)
-        newUser.email = res.email || ''
-        newUser.first_name = res.given_name || ''
-        newUser.last_name = res.family_name || ''
-
-        // router.push({ name: 'app' })
+        loadingUser.value = true
+        const curr = await Plexus.Auth.getUserData()
+        const data = await curr.me()
+        strictAssign(userBuffer, data)
       } catch (err) {
         showError(err)
       } finally {
-        loading.value = false
+        loadingUser.value = false
       }
     }
 
-    const handleOnError = (errorResponse) => {
-      console.log('Error: ', errorResponse)
+    const savingUser = ref(false)
+    const saveUser = async () => {
+      try {
+        savingUser.value = true
+        const res = await userBuffer.update()
+        await Plexus.Auth.setUserData(res)
+        showSuccess(null, 'Changes saved!')
+      } catch (err) {
+        showError(err)
+      } finally {
+        savingUser.value = false
+      }
     }
 
-    const { isReady, login } = useCodeClient({
-      onSuccess: handleOnSuccess,
-      onError: handleOnError
-    })
-
-    const isAuthenticated = ref(false)
     onMounted(async () => {
-      isAuthenticated.value = await Plexus.Auth.isAuthenticated()
-      console.log(await Plexus.Auth.isAuthenticated())
+      await getUser()
     })
 
     return {
-      isReady,
-      verifiedGoogleUser,
-      notExistingUser,
-      newUser,
-      loading,
-      login,
-      logout,
-      isAuthenticated,
-      handleOnSuccess,
-      handleOnError
+      userBuffer,
+      loadingUser,
+      saveUser,
+      savingUser
     }
-  },
-  components: { PLFieldInput }
+  }
 })
 </script>
 
 <style lang="scss">
-.login-form {
-  .early-access {
-    font-size: 16px;
-    text-align: center;
-  }
+.teams-layout {
 }
 </style>
