@@ -47,7 +47,7 @@ import Plexus from 'src/api'
 export default defineComponent({
   setup () {
     const route = useRoute()
-    const { showError /* showSuccess */ } = useNotify()
+    const { showError, showSuccess } = useNotify()
 
     const teamBuffer = reactive(
       new Team({
@@ -75,6 +75,7 @@ export default defineComponent({
       try {
         savingTeam.value = true
         await Plexus.API.put(`/teams/${route.params.id}`, teamBuffer)
+        showSuccess(null, 'Changes saved!')
       } catch (err) {
         showError(err)
       } finally {
