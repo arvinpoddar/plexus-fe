@@ -51,7 +51,7 @@
 <script>
 import { defineComponent, onBeforeMount, ref, reactive } from 'vue'
 import Plexus from 'src/api'
-import useNotify from 'src/composables/notify'
+import useNotify from 'src/composables/useNotify'
 import { useRouter } from 'vue-router'
 import User from 'src/api/models/User'
 import { logout } from 'src/modules/Utils'

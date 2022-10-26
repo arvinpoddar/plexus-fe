@@ -11,24 +11,6 @@
           <span class="f-bold">{{ pageTitle }}</span>
         </q-toolbar-title>
 
-        <q-btn
-          v-if="team"
-          label="New Doc"
-          class="pl-btn q-mr-sm"
-          color="primary"
-          no-wrap
-          to="/new-doc"
-        />
-
-        <q-btn
-          v-if="team"
-          icon="settings"
-          class="pl-btn-icn"
-          color="primary"
-          no-wrap
-          :to="`/team/${team.id}`"
-        />
-
         <q-separator vertical class="q-mx-md" />
 
         <div class="user-info row items-center cursor-pointer">
@@ -77,8 +59,8 @@ export default defineComponent({
     onBeforeMount(async () => {
       user.value = await Plexus.Auth.getUserData()
       const teams = await Team.getForUser()
-      await Team.setTeamsCache(teams)
-      if (teams.length) {
+      const activeTeam = await Team.getCurrentTeam()
+      if (!activeTeam && teams.length) {
         await Team.setCurrentTeam(teams[0])
       }
       team.value = await Team.getCurrentTeam()
@@ -115,6 +97,7 @@ export default defineComponent({
     height: 70px;
     margin-left: 5px;
     margin-right: 15px;
+
     img {
       width: 30px;
     }
@@ -122,12 +105,15 @@ export default defineComponent({
 
   .user-info {
     max-width: 275px;
+
     .user-titles {
       margin-right: 50px;
+
       .user-name {
         font-size: 14px;
         font-weight: 600;
       }
+
       .user-org {
         color: var(--dark-grey);
         font-size: 12px;

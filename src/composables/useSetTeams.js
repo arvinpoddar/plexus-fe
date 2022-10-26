@@ -1,5 +1,5 @@
 import Team from 'src/api/models/Team'
-import useNotify from 'src/composables/notify'
+import useNotify from 'src/composables/useNotify'
 
 export function useSetTeams () {
   const { showError } = useNotify()

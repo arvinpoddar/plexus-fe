@@ -59,7 +59,7 @@ import { defineComponent, onMounted, ref, reactive } from 'vue'
 import Plexus from 'src/api'
 import User from 'src/api/models/User'
 import { strictAssign } from 'src/modules/Utils'
-import useNotify from 'src/composables/notify'
+import useNotify from 'src/composables/useNotify'
 
 export default defineComponent({
   setup () {

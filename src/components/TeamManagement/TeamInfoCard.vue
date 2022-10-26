@@ -40,7 +40,7 @@
 import { defineComponent, onMounted, ref, reactive } from 'vue'
 import { useRoute } from 'vue-router'
 import { strictAssign } from 'src/modules/Utils'
-import useNotify from 'src/composables/notify'
+import useNotify from 'src/composables/useNotify'
 import Team from 'src/api/models/Team'
 import Plexus from 'src/api'
 

@@ -73,7 +73,7 @@ import ManageUserRow from 'src/components/TeamManagement/ManageUserRow'
 import Plexus from 'src/api'
 import User from 'src/api/models/User'
 import { useRoute } from 'vue-router'
-import useNotify from 'src/composables/notify'
+import useNotify from 'src/composables/useNotify'
 import PageLoader from '../global/PageLoader.vue'
 
 export default defineComponent({

@@ -1,54 +1,26 @@
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide" class="create-team-modal">
     <div class="pl-card modal-sm">
-      <q-form @submit="createTeam">
+      <q-form @submit="save">
         <div class="pl-card-title q-pr-md">
-          <div>Create a team</div>
+          <div>Download document</div>
           <q-space />
           <q-btn icon="close" color="grey-8" round flat dense v-close-popup />
         </div>
 
         <!-- MODAL CONTENTS FOR SENDING THE CONTACT FORM -->
         <q-card-section class="q-pt-md q-px-lg q-gutter-y-md">
-          <PLFieldInput
-            v-model="teamBuffer.name"
-            field="Name*"
-            required
-            maxlength="50"
-          >
+          <PLFieldInput v-model="fileName" field="Name*" required maxlength="50"
+            focus>
             <template v-slot:label>
-              <PLCharacterCount
-                :length="teamBuffer.name.length"
-                :maxlength="50"
-              />
+              <PLCharacterCount :length="fileName.length" :maxlength="50" />
             </template>
           </PLFieldInput>
-
-          <PLTextArea
-            v-model="teamBuffer.description"
-            field="Description"
-            maxlength="140"
-            :minHeight="100"
-          >
-            <template v-slot:label>
-              <PLCharacterCount
-                :length="teamBuffer.description.length"
-                :maxlength="140"
-              />
-            </template>
-          </PLTextArea>
         </q-card-section>
 
-        <q-separator />
-
         <div class="text-right q-pa-md">
-          <q-btn
-            label="Create team"
-            class="pl-btn"
-            color="primary"
-            type="submit"
-            :loading="loading"
-          />
+          <q-btn label="Download" class="pl-btn" color="primary" type="submit"
+            :loading="loading" />
         </div>
       </q-form>
     </div>
@@ -56,37 +28,33 @@
 </template>
 
 <script>
-import { defineComponent, ref, reactive } from 'vue'
+import { defineComponent, ref } from 'vue'
 import { useDialogPluginComponent } from 'quasar'
-import Team from 'src/api/models/Team'
-import useNotify from 'src/composables/useNotify'
+import dayjs from 'dayjs'
+import FileSaver from 'file-saver'
 
 export default defineComponent({
   emits: [...useDialogPluginComponent.emits],
-
-  setup () {
-    const { showError } = useNotify()
+  props: {
+    document: Object
+  },
+  setup (props) {
     const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } =
       useDialogPluginComponent()
 
-    const teamBuffer = reactive({
-      name: '',
-      description: ''
-    })
+    const suggestedName = `${props.document.name} ${dayjs().format('YYYY-MM-DD HH-mm')}`
+    const fileName = ref(suggestedName)
 
-    const loading = ref(false)
-
-    const createTeam = async () => {
-      try {
-        loading.value = true
-        const team = new Team(teamBuffer)
-        const res = await team.create()
-        onDialogOK(res)
-      } catch (err) {
-        showError(err)
-      } finally {
-        loading.value = false
+    const save = () => {
+      if (!props.document) {
+        return
       }
+      const fileSaveName = fileName.value + '.md'
+      const markdown = new Blob([props.document.content], {
+        type: 'text/plain;charset=utf-8'
+      })
+      FileSaver.saveAs(markdown, fileSaveName)
+      dialogRef.value.hide()
     }
 
     return {
@@ -105,12 +73,11 @@ export default defineComponent({
         // or with payload: onDialogOK({ ... })
         // ...and it will also hide the dialog automatically
       },
-      loading,
-      teamBuffer,
-      createTeam,
-
       // we can passthrough onDialogCancel directly
-      onCancelClick: onDialogCancel
+      onCancelClick: onDialogCancel,
+
+      fileName,
+      save
     }
   }
 })
