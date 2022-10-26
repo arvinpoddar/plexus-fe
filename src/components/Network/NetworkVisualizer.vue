@@ -3,12 +3,12 @@
     <div v-if="!(documents && documents.length)"
       class="col flex column flex-center">
       <img src="~assets/noDocuments.svg" class="no-docs-img q-mb-lg" alt="" />
-      <div class="f-bold">You don't have any documents</div>
+      <div class="f-bold">Your team doesn't have any documents</div>
       <q-btn class="pl-btn q-mt-lg" color="primary" label="New Doc"
         @click="createDocument" />
     </div>
 
-    <div v-else class="network-visualizer">
+    <div v-else class="full-height full-width network-visualizer">
       <q-btn v-for="doc in documents" :key="doc.id" :label="doc.name"
         class="pl-btn q-ma-sm" color="primary" @click="selectDocument(doc)" />
 
