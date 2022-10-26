@@ -27,6 +27,8 @@ export default defineComponent({
 
 <style lang="scss">
 .renderer-container {
+  background: #0d1117;
+
   .markdown-body {
     box-sizing: border-box;
     min-width: 200px;
