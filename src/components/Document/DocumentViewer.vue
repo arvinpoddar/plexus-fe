@@ -11,8 +11,13 @@
       <div class="document-viewer-menu row items-center">
         <q-btn class="q-mr-sm" :icon="fullscreenIcon" no-caps dense flat
           @click="toggleFullscreen" />
-        <div class="f-bold document-title">
-          {{ document.name }}
+        <div class="document-header ellipsis">
+          <div class="f-bold document-title">
+            {{ document.name }}
+          </div>
+          <div class="document-subtitle">
+            Updated by {{ documentAuthorName }} @ {{ lastUpdatedDate }}
+          </div>
         </div>
         <q-space />
         <div class="q-gutter-x-xs">
@@ -57,6 +62,8 @@ import useNotify from 'src/composables/useNotify'
 import { useQuasar } from 'quasar'
 import Document from 'src/api/models/Documents'
 import Team from 'src/api/models/Team'
+import dayjs from 'dayjs'
+import { strictAssign } from 'src/modules/Utils'
 
 const MODES = {
   EDIT: 'e',
@@ -120,14 +127,40 @@ export default defineComponent({
 
     const showViewer = computed(() => mode.value === MODES.VIEW || fullscreen.value)
 
+    const documentAuthor = computed(() => {
+      if (document.value && document.value.author) {
+        return document.value.author
+      }
+      return null
+    })
+
+    const documentAuthorName = computed(() => {
+      if (documentAuthor.value) {
+        return `${documentAuthor.value.first_name} ${documentAuthor.value.last_name}`
+      }
+      return ''
+    })
+
     const isDocumentAuthor = computed(() => {
-      return document.value && currentUser.value && document.value.author === currentUser.value.id
+      if (documentAuthor.value) {
+        return documentAuthor.value.id === currentUser.value.id
+      }
+      return false
+    })
+
+    const lastUpdatedDate = computed(() => {
+      if (document.value) {
+        const d = dayjs(document.value.last_updated)
+        return d.format('MM/DD/YY h:mm A')
+      }
+      return ''
     })
 
     const fetchDocument = async (docId) => {
       try {
         loading.value = true
         document.value = await Document.get(currentTeam.value.id, props.docId)
+        console.log(document.value)
         ctx.emit(CLEAN_EVENT)
       } catch (err) {
         showError(err)
@@ -148,6 +181,7 @@ export default defineComponent({
       try {
         saving.value = true
         const res = await document.value.saveForTeam(currentTeam.value.id)
+        strictAssign(document.value, res)
         showSuccess(res, 'Saved changes!')
         ctx.emit(CLEAN_EVENT)
       } catch (err) {
@@ -207,7 +241,6 @@ export default defineComponent({
     return {
       loading,
       document,
-      isDocumentAuthor,
 
       MODES,
       mode,
@@ -223,6 +256,12 @@ export default defineComponent({
       fetchDocument,
       editDocumentLocally,
       downloadDocument,
+
+      documentAuthor,
+      documentAuthorName,
+      isDocumentAuthor,
+
+      lastUpdatedDate,
 
       saving,
       saveDocument,
@@ -241,6 +280,13 @@ export default defineComponent({
   .document-viewer-menu {
     padding: 10px;
     background: #fff;
+
+    .document-header {
+      .document-subtitle {
+        font-size: 11px;
+        color: grey;
+      }
+    }
   }
 }
 

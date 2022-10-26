@@ -8,6 +8,8 @@ class Document {
     this.author = null
     this.content = ''
     this.status = ''
+    this.last_updated = ''
+    this.created_at = ''
 
     strictAssign(this, params)
   }
