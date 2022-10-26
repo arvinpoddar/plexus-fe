@@ -21,7 +21,11 @@
           <q-btn v-if="isDocumentAuthor" icon="save" no-caps dense flat
             :loading="saving" @click="saveDocument" />
           <q-btn icon="download" no-caps dense flat @click="downloadDocument" />
+
         </div>
+        <q-separator v-if="isDocumentAuthor" vertical class="q-mx-md" />
+        <q-btn v-if="isDocumentAuthor" icon="delete" color="negative" no-caps
+          dense flat :loading="deleting" @click="deleteDocument" />
       </div>
       <div class="col editor-panels row">
         <MarkdownEditor v-show="showEditor" class="editor-outer col"
@@ -35,18 +39,19 @@
 
   <template v-else>
     <div class="column flex flex-center">
-      <img src="~assets/badge-theme.png" class="get-started-img q-mb-lg"
+      <img src="~assets/noActiveDoc.svg" class="get-started-img q-mb-lg"
         alt="" />
-      Select a document from the graph to get started
+      <span class="f-bold">Select a document from the graph</span>
     </div>
   </template>
 </template>
 
 <script>
 import { defineComponent, onBeforeMount, ref, watch, computed, onMounted } from 'vue'
-import MarkdownRenderer from 'src/components/Document/MarkdownRenderer'
-import MarkdownEditor from 'src/components/Document/MarkdownEditor'
-import DownloadDocumentModal from './DownloadDocumentModal'
+import MarkdownRenderer from 'src/components/Document/MarkdownRenderer.vue'
+import MarkdownEditor from 'src/components/Document/MarkdownEditor.vue'
+import DownloadDocumentModal from 'src/components/Document/DownloadDocumentModal.vue'
+import DeleteDocumentModal from 'src/components/Document/DeleteDocumentModal.vue'
 import Plexus from 'src/api'
 import useNotify from 'src/composables/useNotify'
 import { useQuasar } from 'quasar'
@@ -60,10 +65,11 @@ const MODES = {
 
 const DIRTY_EVENT = 'dirty'
 const CLEAN_EVENT = 'clean'
+const DELETE_EVENT = 'delete-doc'
 
 export default defineComponent({
   name: 'MarkdownViewer',
-  emits: [DIRTY_EVENT, CLEAN_EVENT],
+  emits: [DIRTY_EVENT, CLEAN_EVENT, DELETE_EVENT],
   components: {
     MarkdownRenderer,
     MarkdownEditor
@@ -119,10 +125,6 @@ export default defineComponent({
     })
 
     const fetchDocument = async (docId) => {
-      if (!docId) {
-        return
-      }
-
       try {
         loading.value = true
         document.value = await Document.get(currentTeam.value.id, props.docId)
@@ -168,16 +170,38 @@ export default defineComponent({
       })
     }
 
+    const deleting = ref(false)
+    const deleteDocument = () => {
+      $q.dialog({
+        component: DeleteDocumentModal,
+        componentProps: {
+          document: document.value
+        }
+      }).onOk(() => {
+        ctx.emit(DELETE_EVENT, document.value)
+      })
+    }
+
     onBeforeMount(async () => {
       currentUser.value = await Plexus.Auth.getUserData()
       currentTeam.value = await Team.getCurrentTeam()
     })
 
-    onMounted(() => fetchDocument(props.docId))
+    const changeDocument = (id) => {
+      if (id) {
+        fetchDocument(id)
+      } else {
+        document.value = null
+      }
+    }
+
+    onMounted(() => {
+      changeDocument(props.docId)
+    })
 
     watch(() => props.docId, (id) => {
       mode.value = MODES.VIEW
-      fetchDocument(id)
+      changeDocument(id)
     })
 
     return {
@@ -198,10 +222,13 @@ export default defineComponent({
 
       fetchDocument,
       editDocumentLocally,
-      saveDocument,
       downloadDocument,
 
-      saving
+      saving,
+      saveDocument,
+
+      deleting,
+      deleteDocument
     }
   }
 })
@@ -219,7 +246,7 @@ export default defineComponent({
 
 .get-started-img {
   width: 100%;
-  max-width: 150px;
+  max-width: 200px;
 }
 
 .document-viewer.fullscreen {

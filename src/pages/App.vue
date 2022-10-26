@@ -19,10 +19,11 @@
   </q-page>
 
   <q-page v-else class="row items-stretch app-layout" style="height: 1px;">
-    <NetworkVisualizer class="network-visualizer-outer col"
-      @select-doc="setActiveDoc" />
+    <NetworkVisualizer :documents="documents"
+      class="network-visualizer-outer col" @select-doc="setActiveDoc"
+      @delete-doc="removeDoc" @create-doc="addDoc" />
     <DocumentViewer class="col" :docId="activeDocId" @dirty="setDirty(true)"
-      @clean="setDirty(false)" />
+      @clean="setDirty(false)" @delete-doc="removeDoc" />
   </q-page>
 
 </template>
@@ -37,6 +38,7 @@ import ConfirmLeaveDocumentModal from 'src/components/Document/ConfirmLeaveDocum
 import DocumentViewer from 'src/components/Document/DocumentViewer.vue'
 import NetworkVisualizer from 'src/components/Network/NetworkVisualizer.vue'
 import { useCreateTeam } from 'src/composables/useCreateTeam'
+import Document from 'src/api/models/Documents'
 
 export default defineComponent({
   components: {
@@ -68,6 +70,19 @@ export default defineComponent({
       }
     }
 
+    const documents = ref([])
+    const loadDocuments = async () => {
+      try {
+        loading.value = true
+        const team = await Team.getCurrentTeam()
+        documents.value = await Document.listForTeam(team.id)
+      } catch (err) {
+        showError(err)
+      } finally {
+        loading.value = false
+      }
+    }
+
     const activeDoc = ref(null)
     const activeDocId = computed(() => activeDoc.value ? activeDoc.value.id : '')
 
@@ -90,12 +105,22 @@ export default defineComponent({
       }
     }
 
+    const removeDoc = (deletedDoc) => {
+      documents.value = documents.value.filter(d => d.id !== deletedDoc.id)
+      activeDoc.value = null
+    }
+
+    const addDoc = (newDoc) => {
+      documents.value.push(newDoc)
+    }
+
     const setDirty = (val) => {
       activeDocIsDirty.value = val
     }
 
     onBeforeMount(async () => {
       await loadTeamData()
+      await loadDocuments()
     })
 
     return {
@@ -104,10 +129,16 @@ export default defineComponent({
       activeTeam,
       showCreateTeamModal,
 
+      documents,
+      loadDocuments,
+
       activeDoc,
       activeDocId,
       setActiveDoc,
-      setDirty
+      setDirty,
+
+      removeDoc,
+      addDoc
     }
   }
 })

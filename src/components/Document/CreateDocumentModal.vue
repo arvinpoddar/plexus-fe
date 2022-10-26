@@ -1,25 +1,24 @@
 <template>
-  <q-dialog ref="dialogRef" @hide="onDialogHide" class="download-doc-modal">
+  <q-dialog ref="dialogRef" @hide="onDialogHide" class="create-doc-modal">
     <div class="pl-card modal-sm">
-      <q-form @submit="save">
+      <q-form @submit="createDocument">
         <div class="pl-card-title q-pr-md">
-          <div>Download document</div>
+          <div>Create document</div>
           <q-space />
           <q-btn icon="close" color="grey-8" round flat dense v-close-popup />
         </div>
 
-        <!-- MODAL CONTENTS FOR SENDING THE CONTACT FORM -->
         <q-card-section class="q-pt-md q-px-lg q-gutter-y-md">
-          <PLFieldInput v-model="fileName" field="Name*" required maxlength="50"
-            focus>
+          <PLFieldInput v-model="newDocName" field="Document Name*" required
+            maxlength="50" focus>
             <template v-slot:label>
-              <PLCharacterCount :length="fileName.length" :maxlength="50" />
+              <PLCharacterCount :length="newDocName.length" :maxlength="50" />
             </template>
           </PLFieldInput>
         </q-card-section>
 
         <div class="text-right q-pa-md">
-          <q-btn label="Download" class="pl-btn" color="primary" type="submit"
+          <q-btn label="Create" class="pl-btn" color="primary" type="submit"
             :loading="loading" />
         </div>
       </q-form>
@@ -30,31 +29,42 @@
 <script>
 import { defineComponent, ref } from 'vue'
 import { useDialogPluginComponent } from 'quasar'
-import dayjs from 'dayjs'
-import FileSaver from 'file-saver'
+import Document from 'src/api/models/Documents'
+import Team from 'src/api/models/Team'
+import useNotify from 'src/composables/useNotify'
 
 export default defineComponent({
   emits: [...useDialogPluginComponent.emits],
-  props: {
-    document: Object
-  },
-  setup (props) {
+  setup () {
     const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } =
       useDialogPluginComponent()
 
-    const suggestedName = `${props.document.name} ${dayjs().format('YYYY-MM-DD HH-mm')}`
-    const fileName = ref(suggestedName)
+    const { showError } = useNotify()
 
-    const save = () => {
-      if (!props.document) {
+    const loading = ref(false)
+    const newDocName = ref('')
+
+    const createDocument = async () => {
+      if (!newDocName.value) {
         return
       }
-      const fileSaveName = fileName.value + '.md'
-      const markdown = new Blob([props.document.content], {
-        type: 'text/plain;charset=utf-8'
-      })
-      FileSaver.saveAs(markdown, fileSaveName)
-      dialogRef.value.hide()
+
+      try {
+        loading.value = true
+        const team = await Team.getCurrentTeam()
+        const docBuffer = new Document({
+          id: '',
+          name: newDocName.value,
+          status: 'PUBLISHED',
+          content: `# ${newDocName.value}\n`
+        })
+        const res = await docBuffer.createForTeam(team.id)
+        onDialogOK(res)
+      } catch (err) {
+        showError(err)
+      } finally {
+        loading.value = false
+      }
     }
 
     return {
@@ -76,15 +86,16 @@ export default defineComponent({
       // we can passthrough onDialogCancel directly
       onCancelClick: onDialogCancel,
 
-      fileName,
-      save
+      loading,
+      newDocName,
+      createDocument
     }
   }
 })
 </script>
 
 <style lang="scss">
-.download-doc-modal {
+.create-doc-modal {
   .pl-card {
     box-shadow: none;
   }

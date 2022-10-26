@@ -1,68 +1,68 @@
 <template>
-  <!-- LOADING STATE -->
-  <template v-if="loading">
-    <div class="column flex flex-center">
-      <PageLoader />
+  <div class="flex column network-visualizer-outer">
+    <div v-if="!(documents && documents.length)"
+      class="col flex column flex-center">
+      <img src="~assets/noDocuments.svg" class="no-docs-img q-mb-lg" alt="" />
+      <div class="f-bold">You don't have any documents</div>
+      <q-btn class="pl-btn q-mt-lg" color="primary" label="New Doc"
+        @click="createDocument" />
     </div>
-  </template>
 
-  <template v-else>
-    <div class="flex column network-visualizer">
+    <div v-else class="network-visualizer">
       <q-btn v-for="doc in documents" :key="doc.id" :label="doc.name"
-        color="primary" class="q-ma-sm" @click="selectDoc(doc)" />
-    </div>
-  </template>
+        class="pl-btn q-ma-sm" color="primary" @click="selectDocument(doc)" />
 
+      <q-btn label="Create" class="pl-btn" color="positive"
+        @click="createDocument" />
+    </div>
+  </div>
 </template>
 
 <script>
-import Team from 'src/api/models/Team'
-import { defineComponent, onBeforeMount, ref } from 'vue'
-import useNotify from 'src/composables/useNotify'
+import { defineComponent } from 'vue'
 
-import Document from 'src/api/models/Documents'
+import { useQuasar } from 'quasar'
+import CreateDocumentModal from 'src/components/Document/CreateDocumentModal.vue'
 
 const SELECT_DOC_EVENT = 'select-doc'
+const CREATE_DOC_EVENT = 'create-doc'
+const DELETE_DOC_EVENT = 'delete-doc'
 
 export default defineComponent({
   name: 'NetworkVisualizer',
-  emits: [SELECT_DOC_EVENT],
+  emits: [SELECT_DOC_EVENT, CREATE_DOC_EVENT, DELETE_DOC_EVENT],
+  props: {
+    documents: Array
+  },
   setup (props, ctx) {
-    const { showError } = useNotify()
+    const $q = useQuasar()
 
-    const documents = ref([])
-
-    const loading = ref(false)
-    const loadDocuments = async () => {
-      try {
-        loading.value = true
-        const team = await Team.getCurrentTeam()
-        documents.value = await Document.listForTeam(team.id)
-      } catch (err) {
-        showError(err)
-      } finally {
-        loading.value = false
-      }
+    const createDocument = () => {
+      $q.dialog({
+        component: CreateDocumentModal
+      }).onOk((doc) => {
+        ctx.emit(CREATE_DOC_EVENT, doc)
+      })
     }
 
-    const selectDoc = (doc) => {
+    const selectDocument = (doc) => {
       ctx.emit(SELECT_DOC_EVENT, doc)
     }
 
-    onBeforeMount(async () => {
-      await loadDocuments()
-    })
-
     return {
-      loading,
-      documents,
-
-      selectDoc
+      selectDocument,
+      createDocument
     }
   }
 })
 </script>
 
 <style lang="scss">
+.network-visualizer-outer {
 
+  .no-docs-img {
+    width: 100%;
+    max-width: 200px;
+  }
+}
 </style>
