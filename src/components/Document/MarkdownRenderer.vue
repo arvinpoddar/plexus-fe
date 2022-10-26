@@ -2,7 +2,6 @@
   <div class="renderer-container full-height full-width">
     <Markdown class="markdown-body" :source="source" linkify html />
   </div>
-
 </template>
 
 <script>
