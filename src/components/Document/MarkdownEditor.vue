@@ -39,6 +39,7 @@ export default defineComponent({
           oneDarkTheme,
           syntaxHighlighting(oneDarkHighlightStyle),
           keymap.of([indentWithTab]),
+          EditorView.lineWrapping,
           EditorView.updateListener.of((e) => emitLocalEdit(e))
         ]
       })
@@ -59,9 +60,11 @@ export default defineComponent({
       ctx.emit(SAVE_EVENT)
     }
 
-    emitSave()
-
     onMounted(() => initEditor())
+
+    return {
+      emitSave
+    }
   }
 })
 </script>

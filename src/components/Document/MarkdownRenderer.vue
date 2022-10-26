@@ -1,6 +1,8 @@
 <template>
-  <Markdown class="markdown-body full-height full-width" :source="source"
-    linkify html />
+  <div class="renderer-container full-height full-width">
+    <Markdown class="markdown-body" :source="source" linkify html />
+  </div>
+
 </template>
 
 <script>
@@ -20,20 +22,22 @@ export default defineComponent({
       type: String,
       default: ''
     }
-  },
-  setup (ctx, props) { }
+  }
 })
 </script>
 
 <style lang="scss">
-.markdown-body {
-  box-sizing: border-box;
-  min-width: 200px;
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 30px;
+.renderer-container {
+  .markdown-body {
+    box-sizing: border-box;
+    min-width: 200px;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 30px;
 
-  min-height: 100%;
-  height: 100%;
+    height: 1px;
+    min-height: 100%;
+    overflow-y: auto;
+  }
 }
 </style>

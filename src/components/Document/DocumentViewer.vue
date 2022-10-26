@@ -16,17 +16,18 @@
         </div>
         <q-space />
         <div class="q-gutter-x-xs">
-          <q-btn v-if="!fullscreen" :icon="modeIcon" no-caps dense flat
-            @click="toggleMode" />
-          <q-btn icon="save" no-caps dense flat />
+          <q-btn v-if="isDocumentAuthor && !fullscreen" :icon="modeIcon" no-caps
+            dense flat @click="toggleMode" />
+          <q-btn v-if="isDocumentAuthor" icon="save" no-caps dense flat
+            :loading="saving" @click="saveDocument" />
           <q-btn icon="download" no-caps dense flat @click="downloadDocument" />
         </div>
       </div>
       <div class="col editor-panels row">
-        <MarkdownEditor v-show="showEditor" class="col"
+        <MarkdownEditor v-show="showEditor" class="editor-outer col"
           :source="document.content" @local-edit="editDocumentLocally"
           @save="saveDocument" />
-        <MarkdownRenderer v-show="showViewer" class="col"
+        <MarkdownRenderer v-show="showViewer" class="renderer-outer col"
           :source="document.content" />
       </div>
     </div>
@@ -72,10 +73,12 @@ export default defineComponent({
   },
   setup (props, ctx) {
     const $q = useQuasar()
-    const { showError } = useNotify()
+    const { showError, showSuccess } = useNotify()
 
     const loading = ref(false)
     const document = ref(null)
+
+    const currentTeam = ref(null)
     const currentUser = ref(null)
 
     const mode = ref(MODES.VIEW)
@@ -107,7 +110,7 @@ export default defineComponent({
 
     const fullscreenIcon = computed(() => fullscreen.value ? 'close_fullscreen' : 'fullscreen')
 
-    const showEditor = computed(() => /* TODO: isDocumentAuthor.value && */(mode.value === MODES.EDIT || fullscreen.value))
+    const showEditor = computed(() => isDocumentAuthor.value && (mode.value === MODES.EDIT || fullscreen.value))
 
     const showViewer = computed(() => mode.value === MODES.VIEW || fullscreen.value)
 
@@ -122,8 +125,7 @@ export default defineComponent({
 
       try {
         loading.value = true
-        const team = await Team.getCurrentTeam()
-        document.value = await Document.get(team.id, props.docId)
+        document.value = await Document.get(currentTeam.value.id, props.docId)
         ctx.emit(CLEAN_EVENT)
       } catch (err) {
         showError(err)
@@ -139,9 +141,18 @@ export default defineComponent({
       }
     }
 
-    const saveDocument = () => {
-      console.log('saving document')
-      ctx.emit(CLEAN_EVENT)
+    const saving = ref(false)
+    const saveDocument = async () => {
+      try {
+        saving.value = true
+        const res = await document.value.saveForTeam(currentTeam.value.id)
+        showSuccess(res, 'Saved changes!')
+        ctx.emit(CLEAN_EVENT)
+      } catch (err) {
+        showError(err)
+      } finally {
+        saving.value = false
+      }
     }
 
     const downloadDocument = () => {
@@ -159,6 +170,7 @@ export default defineComponent({
 
     onBeforeMount(async () => {
       currentUser.value = await Plexus.Auth.getUserData()
+      currentTeam.value = await Team.getCurrentTeam()
     })
 
     onMounted(() => fetchDocument(props.docId))
@@ -187,7 +199,9 @@ export default defineComponent({
       fetchDocument,
       editDocumentLocally,
       saveDocument,
-      downloadDocument
+      downloadDocument,
+
+      saving
     }
   }
 })
