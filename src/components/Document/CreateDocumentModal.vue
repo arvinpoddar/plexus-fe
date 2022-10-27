@@ -9,8 +9,13 @@
         </div>
 
         <q-card-section class="q-pt-md q-px-lg q-gutter-y-md">
-          <PLFieldInput v-model="newDocName" field="Document Name*" required
-            maxlength="50" focus>
+          <PLFieldInput
+            v-model="newDocName"
+            field="Document Name*"
+            required
+            maxlength="50"
+            focus
+          >
             <template v-slot:label>
               <PLCharacterCount :length="newDocName.length" :maxlength="50" />
             </template>
@@ -18,8 +23,13 @@
         </q-card-section>
 
         <div class="text-right q-pa-md">
-          <q-btn label="Create" class="pl-btn" color="primary" type="submit"
-            :loading="loading" />
+          <q-btn
+            label="Create"
+            class="pl-btn"
+            color="primary"
+            type="submit"
+            :loading="loading"
+          />
         </div>
       </q-form>
     </div>

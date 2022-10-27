@@ -8,10 +8,14 @@
           <q-btn icon="close" color="grey-8" round flat dense v-close-popup />
         </div>
 
-        <!-- MODAL CONTENTS FOR SENDING THE CONTACT FORM -->
         <q-card-section class="q-pt-md q-px-lg q-gutter-y-md">
-          <PLFieldInput v-model="fileName" field="Name*" required maxlength="50"
-            focus>
+          <PLFieldInput
+            v-model="fileName"
+            field="Name*"
+            required
+            maxlength="50"
+            focus
+          >
             <template v-slot:label>
               <PLCharacterCount :length="fileName.length" :maxlength="50" />
             </template>
@@ -19,8 +23,13 @@
         </q-card-section>
 
         <div class="text-right q-pa-md">
-          <q-btn label="Download" class="pl-btn" color="primary" type="submit"
-            :loading="loading" />
+          <q-btn
+            label="Download"
+            class="pl-btn"
+            color="primary"
+            type="submit"
+            :loading="loading"
+          />
         </div>
       </q-form>
     </div>
@@ -42,7 +51,9 @@ export default defineComponent({
     const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } =
       useDialogPluginComponent()
 
-    const suggestedName = `${props.document.name} ${dayjs().format('YYYY-MM-DD HH-mm')}`
+    const suggestedName = `${props.document.name} ${dayjs().format(
+      'YYYY-MM-DD HH-mm'
+    )}`
     const fileName = ref(suggestedName)
 
     const save = () => {

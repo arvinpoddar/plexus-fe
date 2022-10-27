@@ -1,20 +1,35 @@
 <template>
   <div class="flex column network-visualizer-outer">
-    <div v-if="!(documents && documents.length)"
-      class="col flex column flex-center">
+    <div
+      v-if="!(documents && documents.length)"
+      class="col flex column flex-center"
+    >
       <img src="~assets/noDocuments.svg" class="no-docs-img q-mb-lg" alt="" />
       <div class="f-bold">Your team doesn't have any documents</div>
-      <q-btn class="pl-btn q-mt-lg" color="primary" label="New Doc"
-        @click="createDocument" />
+      <q-btn
+        class="pl-btn q-mt-lg"
+        color="primary"
+        label="New Doc"
+        @click="createDocument"
+      />
     </div>
 
     <div v-else class="full-height full-width network-visualizer">
-      <q-btn v-for="doc in documents" :key="doc.id" :label="doc.name"
-        class="pl-btn q-ma-sm" color="primary" @click="selectDocument(doc)" />
+      <q-btn
+        v-for="doc in documents"
+        :key="doc.id"
+        :label="doc.name"
+        class="pl-btn q-ma-sm"
+        color="primary"
+        @click="selectDocument(doc)"
+      />
 
       <div class="search-bar">
-        <input v-model="query" class="pl-raw-input"
-          placeholder="Search network...">
+        <input
+          v-model="query"
+          class="pl-raw-input"
+          placeholder="Search network..."
+        />
       </div>
 
       <div class="actions-pane flex column q-gutter-y-sm">

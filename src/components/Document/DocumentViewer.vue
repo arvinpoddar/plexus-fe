@@ -6,11 +6,22 @@
   </template>
 
   <template v-else-if="document">
-    <div class="flex column document-viewer"
-      :class="{ 'fullscreen': fullscreen }">
+    <div
+      class="flex column document-viewer"
+      :class="{ fullscreen: fullscreen }"
+    >
+      <!-- MENU BAR -->
       <div class="document-viewer-menu row items-center">
-        <q-btn class="q-mr-sm" :icon="fullscreenIcon" no-caps dense flat
-          @click="toggleFullscreen" />
+        <q-btn
+          class="q-mr-sm"
+          :icon="fullscreenIcon"
+          no-caps
+          dense
+          flat
+          @click="toggleFullscreen"
+        />
+
+        <!-- DOC INFO HEADER -->
         <div class="document-header ellipsis">
           <div class="f-bold document-title">
             {{ document.name }}
@@ -20,39 +31,79 @@
           </div>
         </div>
         <q-space />
-        <div class="q-gutter-x-xs">
-          <q-btn v-if="isDocumentAuthor && !fullscreen" :icon="modeIcon" no-caps
-            dense flat @click="toggleMode" />
-          <q-btn v-if="isDocumentAuthor" icon="save" no-caps dense flat
-            :loading="saving" @click="saveDocument" />
-          <q-btn icon="download" no-caps dense flat @click="downloadDocument" />
 
+        <!-- DOCUMENT ACTIONS -->
+        <div class="q-gutter-x-xs">
+          <q-btn
+            v-if="isDocumentAuthor && !fullscreen"
+            :icon="modeIcon"
+            no-caps
+            dense
+            flat
+            @click="toggleMode"
+          />
+          <q-btn
+            v-if="isDocumentAuthor"
+            icon="save"
+            no-caps
+            dense
+            flat
+            :loading="saving"
+            @click="saveDocument"
+          />
+          <q-btn icon="download" no-caps dense flat @click="downloadDocument" />
         </div>
         <q-separator v-if="isDocumentAuthor" vertical class="q-mx-md" />
-        <q-btn v-if="isDocumentAuthor" icon="delete" color="negative" no-caps
-          dense flat :loading="deleting" @click="deleteDocument" />
+        <q-btn
+          v-if="isDocumentAuthor"
+          icon="delete"
+          color="negative"
+          no-caps
+          dense
+          flat
+          :loading="deleting"
+          @click="deleteDocument"
+        />
       </div>
+
       <div class="col editor-panels row">
-        <MarkdownEditor v-show="showEditor" class="editor-outer col"
-          :source="document.content" @local-edit="editDocumentLocally"
-          @save="saveDocument" />
-        <MarkdownRenderer v-show="showViewer" class="renderer-outer col"
-          :source="document.content" />
+        <MarkdownEditor
+          v-show="showEditor"
+          class="editor-outer col"
+          :source="document.content"
+          @local-edit="editDocumentLocally"
+          @save="saveDocument"
+        />
+        <MarkdownRenderer
+          v-show="showViewer"
+          class="renderer-outer col"
+          :source="document.content"
+        />
       </div>
     </div>
   </template>
 
   <template v-else>
     <div class="column flex flex-center">
-      <img src="~assets/noActiveDoc.svg" class="get-started-img q-mb-lg"
-        alt="" />
+      <img
+        src="~assets/noActiveDoc.svg"
+        class="get-started-img q-mb-lg"
+        alt=""
+      />
       <span class="f-bold">Select a document from the graph</span>
     </div>
   </template>
 </template>
 
 <script>
-import { defineComponent, onBeforeMount, ref, watch, computed, onMounted } from 'vue'
+import {
+  defineComponent,
+  onBeforeMount,
+  ref,
+  watch,
+  computed,
+  onMounted
+} from 'vue'
 import MarkdownRenderer from 'src/components/Document/MarkdownRenderer.vue'
 import MarkdownEditor from 'src/components/Document/MarkdownEditor.vue'
 import DownloadDocumentModal from 'src/components/Document/DownloadDocumentModal.vue'
@@ -121,11 +172,19 @@ export default defineComponent({
       fullscreen.value = !fullscreen.value
     }
 
-    const fullscreenIcon = computed(() => fullscreen.value ? 'close_fullscreen' : 'fullscreen')
+    const fullscreenIcon = computed(() =>
+      fullscreen.value ? 'close_fullscreen' : 'fullscreen'
+    )
 
-    const showEditor = computed(() => isDocumentAuthor.value && (mode.value === MODES.EDIT || fullscreen.value))
+    const showEditor = computed(
+      () =>
+        isDocumentAuthor.value &&
+        (mode.value === MODES.EDIT || fullscreen.value)
+    )
 
-    const showViewer = computed(() => mode.value === MODES.VIEW || fullscreen.value)
+    const showViewer = computed(
+      () => mode.value === MODES.VIEW || fullscreen.value
+    )
 
     const documentAuthor = computed(() => {
       if (document.value && document.value.author) {
@@ -233,10 +292,13 @@ export default defineComponent({
       changeDocument(props.docId)
     })
 
-    watch(() => props.docId, (id) => {
-      mode.value = MODES.VIEW
-      changeDocument(id)
-    })
+    watch(
+      () => props.docId,
+      (id) => {
+        mode.value = MODES.VIEW
+        changeDocument(id)
+      }
+    )
 
     return {
       loading,

@@ -5,27 +5,41 @@
   </q-page>
 
   <!-- NO TEAMS STATE-->
-  <q-page v-else-if="!teams.length"
-    class="full-height full-width flex flex-center no-teams-layout">
+  <q-page
+    v-else-if="!teams.length"
+    class="full-height full-width flex flex-center no-teams-layout"
+  >
     <div class="q-gutter-y-md">
       <img src="~assets/noTeam.svg" alt="" class="no-teams-img" />
       <div>
         Looks like you aren't in any teams. Join one via invite or create your
         own!
       </div>
-      <q-btn class="pl-btn" label="Create a team" color="primary"
-        @click="showCreateTeamModal" />
+      <q-btn
+        class="pl-btn"
+        label="Create a team"
+        color="primary"
+        @click="showCreateTeamModal"
+      />
     </div>
   </q-page>
 
-  <q-page v-else class="row items-stretch app-layout" style="height: 1px;">
-    <NetworkVisualizer :documents="documents"
-      class="network-visualizer-outer col" @select-doc="setActiveDoc"
-      @delete-doc="removeDoc" @create-doc="addDoc" />
-    <DocumentViewer class="col" :docId="activeDocId" @dirty="setDirty(true)"
-      @clean="setDirty(false)" @delete-doc="removeDoc" />
+  <q-page v-else class="row items-stretch app-layout" style="height: 1px">
+    <NetworkVisualizer
+      :documents="documents"
+      class="network-visualizer-outer col"
+      @select-doc="setActiveDoc"
+      @delete-doc="removeDoc"
+      @create-doc="addDoc"
+    />
+    <DocumentViewer
+      class="col"
+      :docId="activeDocId"
+      @dirty="setDirty(true)"
+      @clean="setDirty(false)"
+      @delete-doc="removeDoc"
+    />
   </q-page>
-
 </template>
 
 <script>
@@ -84,7 +98,9 @@ export default defineComponent({
     }
 
     const activeDoc = ref(null)
-    const activeDocId = computed(() => activeDoc.value ? activeDoc.value.id : '')
+    const activeDocId = computed(() =>
+      activeDoc.value ? activeDoc.value.id : ''
+    )
 
     // Track unsaved changes in active doc
     const activeDocIsDirty = ref(false)
@@ -106,7 +122,7 @@ export default defineComponent({
     }
 
     const removeDoc = (deletedDoc) => {
-      documents.value = documents.value.filter(d => d.id !== deletedDoc.id)
+      documents.value = documents.value.filter((d) => d.id !== deletedDoc.id)
       activeDoc.value = null
     }
 
@@ -160,6 +176,5 @@ export default defineComponent({
   .network-visualizer-outer {
     border-right: 1px solid grey;
   }
-
 }
 </style>

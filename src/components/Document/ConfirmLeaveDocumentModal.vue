@@ -8,14 +8,17 @@
 
       <q-card-section>
         You have unsaved changes on this document. Switching documents will
-        discard these changes. Are you sure you want to
-        continue without saving?
+        discard these changes. Are you sure you want to continue without saving?
       </q-card-section>
 
       <div class="text-right q-pa-md q-gutter-x-md">
         <q-btn label="Leave" class="pl-btn" color="grey" @click="onOKClick" />
-        <q-btn label="Cancel" class="pl-btn" color="primary"
-          @click="onCancelClick" />
+        <q-btn
+          label="Cancel"
+          class="pl-btn"
+          color="primary"
+          @click="onCancelClick"
+        />
       </div>
     </div>
   </q-dialog>

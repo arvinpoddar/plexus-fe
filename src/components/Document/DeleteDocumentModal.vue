@@ -8,15 +8,24 @@
       </div>
 
       <q-card-section>
-        Are you sure you want to delete <span class="f-bold">{{ document.name
-        }}</span>? This cannot be undone.
+        Are you sure you want to delete
+        <span class="f-bold"> {{ document.name }} </span>? This cannot be
+        undone.
       </q-card-section>
 
       <div class="text-right q-pa-md q-gutter-x-md">
-        <q-btn label="Cancel" class="pl-btn" color="grey"
-          @click="onCancelClick" />
-        <q-btn label="Delete" class="pl-btn" color="negative"
-          @click="deleteDocument" />
+        <q-btn
+          label="Cancel"
+          class="pl-btn"
+          color="grey"
+          @click="onCancelClick"
+        />
+        <q-btn
+          label="Delete"
+          class="pl-btn"
+          color="negative"
+          @click="deleteDocument"
+        />
       </div>
     </div>
   </q-dialog>

@@ -13,7 +13,10 @@ import { keymap } from '@codemirror/view'
 import { indentWithTab } from '@codemirror/commands'
 import { syntaxHighlighting } from '@codemirror/language'
 import { languages } from '@codemirror/language-data'
-import { oneDarkTheme, oneDarkHighlightStyle } from '@codemirror/theme-one-dark'
+import {
+  oneDarkTheme,
+  oneDarkHighlightStyle
+} from '@codemirror/theme-one-dark'
 
 const LOCAL_EDIT_EVENT = 'local-edit'
 const SAVE_EVENT = 'save'
@@ -82,7 +85,7 @@ export default defineComponent({
   }
 
   .cm-scroller {
-    overflow: auto
+    overflow: auto;
   }
 
   .cm-editor {
@@ -93,12 +96,10 @@ export default defineComponent({
     }
 
     .cm-panel {
-
-      input[type='checkbox'],
+      input[type="checkbox"],
       button {
         cursor: pointer;
       }
-
     }
   }
 }
