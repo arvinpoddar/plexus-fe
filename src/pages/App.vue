@@ -27,6 +27,7 @@
   <q-page v-else class="row items-stretch app-layout" style="height: 1px">
     <NetworkVisualizer
       :documents="documents"
+      :edges="edges"
       class="network-visualizer-outer col"
       @select-doc="setActiveDoc"
       @delete-doc="removeDoc"
@@ -53,6 +54,7 @@ import DocumentViewer from 'src/components/Document/DocumentViewer.vue'
 import NetworkVisualizer from 'src/components/Network/NetworkVisualizer.vue'
 import { useCreateTeam } from 'src/composables/useCreateTeam'
 import Document from 'src/api/models/Documents'
+import Plexus from 'src/api'
 
 export default defineComponent({
   components: {
@@ -90,6 +92,19 @@ export default defineComponent({
         loading.value = true
         const team = await Team.getCurrentTeam()
         documents.value = await Document.listForTeam(team.id)
+      } catch (err) {
+        showError(err)
+      } finally {
+        loading.value = false
+      }
+    }
+
+    const edges = ref([])
+    const loadEdges = async () => {
+      try {
+        loading.value = true
+        const team = await Team.getCurrentTeam()
+        edges.value = await Plexus.API.get(`/teams/${team.id}/edges`)
       } catch (err) {
         showError(err)
       } finally {
@@ -137,6 +152,7 @@ export default defineComponent({
     onBeforeMount(async () => {
       await loadTeamData()
       await loadDocuments()
+      await loadEdges()
     })
 
     return {
@@ -147,6 +163,8 @@ export default defineComponent({
 
       documents,
       loadDocuments,
+      edges,
+      loadEdges,
 
       activeDoc,
       activeDocId,
