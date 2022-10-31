@@ -69,14 +69,7 @@
 </template>
 
 <script>
-import {
-  defineComponent,
-  nextTick,
-  onMounted,
-  reactive,
-  ref,
-  watch
-} from 'vue'
+import { defineComponent, nextTick, onMounted, reactive, ref } from 'vue'
 import Sigma from 'sigma'
 import Graph from 'graphology'
 import circular from 'graphology-layout/circular'
@@ -102,12 +95,23 @@ export default defineComponent({
     const $q = useQuasar()
 
     const searchQuery = ref('')
+    const containerRef = ref(null)
+    const graph = new Graph()
+    let sigma = null
+    let camera = null
+    const state = reactive({
+      hoveredNode: undefined,
+      selectedNode: '',
+      suggestions: undefined,
+      hoveredNeighbors: undefined
+    })
 
     const createDocument = () => {
       $q.dialog({
         component: CreateDocumentModal
       }).onOk((doc) => {
         ctx.emit(CREATE_DOC_EVENT, doc)
+        insertNode(doc, true)
       })
     }
 
@@ -120,17 +124,6 @@ export default defineComponent({
     const getDocumentWithId = (id) => {
       return props.documents.find((d) => d.id === id) || null
     }
-
-    const containerRef = ref(null)
-    const graph = new Graph()
-    let sigma = null
-    let camera = null
-    const state = reactive({
-      hoveredNode: undefined,
-      selectedNode: '',
-      suggestions: undefined,
-      hoveredNeighbors: undefined
-    })
 
     const renderNetwork = () => {
       const container = containerRef.value
@@ -299,6 +292,13 @@ export default defineComponent({
       sigma.refresh()
     }
 
+    const refreshGraph = () => {
+      circular.assign(graph)
+      const settings = forceAtlas2.inferSettings(graph)
+      forceAtlas2.assign(graph, { settings, iterations: 600 })
+      sigma.refresh()
+    }
+
     const insertNode = (document, forceRender = false) => {
       if (!document) {
         return
@@ -310,7 +310,7 @@ export default defineComponent({
       })
 
       if (forceRender) {
-        sigma.refresh()
+        refreshGraph()
       }
     }
 
@@ -334,19 +334,6 @@ export default defineComponent({
       await nextTick()
       renderNetwork()
     })
-
-    watch(
-      () => props.documents,
-      (val) => {
-        if (!graph) {
-          return
-        }
-        const newDocs = val.filter((d) => !graph.nodes(d.id))
-        console.log(newDocs)
-        newDocs.forEach((d) => insertNode(d))
-      },
-      { deep: true }
-    )
 
     return {
       searchQuery,
