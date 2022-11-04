@@ -19,21 +19,22 @@
         ref="containerRef"
         id="sigma-container"
         class="full-height full-width"
-      />
-
-      <!--
-      <q-btn
-        v-for="doc in documents"
-        :key="doc.id"
-        :label="doc.name"
-        class="pl-btn q-ma-sm"
-        color="primary"
-        @click="selectDocument(doc)"
-      />
-      -->
+      >
+        <NetworkTooltip
+          v-show="showTooltip"
+          ref="tooltip"
+          :activeElement="activeElement"
+          :activeElementType="activeElementType"
+          @delete-doc="deleteDocument"
+          @delete-edge="deleteEdge"
+        />
+      </div>
 
       <div class="network-status">
-        <div v-if="edgeSelectionMode">Edge Creation Mode: ON</div>
+        <div v-if="edgeSelectionMode" class="edge-creation-status">
+          <div class="f-14 f-bold">Edge Creation Mode: ON</div>
+          <div class="directions">Click two nodes to create an edge</div>
+        </div>
       </div>
 
       <div class="search-bar">
@@ -89,13 +90,14 @@ import forceAtlas2 from 'graphology-layout-forceatlas2'
 import { useQuasar } from 'quasar'
 import CreateDocumentModal from 'src/components/Document/CreateDocumentModal.vue'
 import CreateEdgeModal from 'src/components/Network/CreateEdgeModal.vue'
+import NetworkTooltip from 'src/components/Network/NetworkTooltip.vue'
 import useNotify from 'src/composables/useNotify'
 
 const SELECT_DOC_EVENT = 'select-doc'
 const CREATE_DOC_EVENT = 'create-doc'
 const DELETE_DOC_EVENT = 'delete-doc'
 const CREATE_EDGE_EVENT = 'create-edge'
-const DELETE_EDGE_EVENT = 'create-edge'
+const DELETE_EDGE_EVENT = 'delete-edge'
 
 const NODE_ACTIVE_COLOR = '#176ceb'
 const NODE_DEFAULT_COLOR = '#7635b8'
@@ -124,6 +126,7 @@ export default defineComponent({
 
     const searchQuery = ref('')
     const containerRef = ref(null)
+
     const graph = new Graph()
     let sigma = null
     let camera = null
@@ -133,6 +136,50 @@ export default defineComponent({
       suggestions: undefined,
       hoveredNeighbors: undefined
     })
+
+    const resetState = () => {
+      state.hoveredNode = undefined
+      state.selectedNode = ''
+      state.suggestions = undefined
+      state.hoveredNeighbors = undefined
+    }
+
+    const getDocumentWithId = (id) => {
+      return props.documents.find((d) => d.id === id) || null
+    }
+
+    const getEdgeWithId = (id) => {
+      return props.edges.find((e) => e.id === id) || null
+    }
+
+    const tooltip = ref(null)
+    const showTooltip = ref(false)
+    const activeElementType = ref(null)
+    const activeElement = ref(null)
+
+    const displayTooltip = (e, type) => {
+      if (type === 'document') {
+        activeElement.value = getDocumentWithId(e.node)
+      } else if (type === 'edge') {
+        activeElement.value = getEdgeWithId(e.edge)
+        const [startId, endId] = e.edge.split('-')
+        const start = getDocumentWithId(startId)
+        const end = getDocumentWithId(endId)
+        const edge = getEdgeWithId(e.edge)
+        edge.connections = { from: start, to: end }
+      }
+      activeElementType.value = type
+      const mouseEvent = e.event.original
+      tooltip.value.$el.style.top = `${mouseEvent.offsetY - 3}px`
+      tooltip.value.$el.style.left = `${mouseEvent.offsetX - 3}px`
+      showTooltip.value = true
+    }
+
+    const hideTooltip = () => {
+      activeElement.value = null
+      activeElementType.value = null
+      showTooltip.value = false
+    }
 
     const createDocument = () => {
       $q.dialog({
@@ -155,10 +202,6 @@ export default defineComponent({
       graph.setNodeAttribute(doc.id, 'color', NODE_ACTIVE_COLOR)
       activeDoc.value = doc.id
       ctx.emit(SELECT_DOC_EVENT, doc)
-    }
-
-    const getDocumentWithId = (id) => {
-      return props.documents.find((d) => d.id === id) || null
     }
 
     const edgeSelectionMode = ref(false)
@@ -255,19 +298,7 @@ export default defineComponent({
         }
       }
 
-      const degrees = graph.nodes().map((node) => graph.degree(node))
-      const minDegree = Math.min(...degrees)
-      const maxDegree = Math.max(...degrees)
-      const minSize = 10,
-        maxSize = 15
-      graph.forEachNode((node) => {
-        const degree = graph.degree(node)
-        const size =
-          minSize +
-          ((degree - minDegree) / (maxDegree - minDegree)) *
-            (maxSize - minSize)
-        graph.setNodeAttribute(node, 'size', size)
-      })
+      setNodeSizes()
 
       circular.assign(graph)
       const settings = forceAtlas2.inferSettings(graph)
@@ -289,19 +320,23 @@ export default defineComponent({
 
       sigma.on('enterNode', (e) => {
         changeCursor('pointer')
+        displayTooltip(e, 'document')
       })
 
       sigma.on('leaveNode', (e) => {
         changeCursor('auto')
+        hideTooltip()
       })
 
       sigma.on('enterEdge', (e) => {
         changeCursor('pointer')
+        displayTooltip(e, 'edge')
         graph.setEdgeAttribute(e.edge, 'color', EDGE_ACTIVE_COLOR)
       })
 
       sigma.on('leaveEdge', (e) => {
         changeCursor('auto')
+        hideTooltip()
         graph.setEdgeAttribute(e.edge, 'color', EDGE_DEFAULT_COLOR)
       })
 
@@ -310,6 +345,7 @@ export default defineComponent({
       sigma.on('enterNode', ({ node }) => {
         setHoveredNode(node)
       })
+
       sigma.on('leaveNode', () => {
         setHoveredNode(undefined)
       })
@@ -367,6 +403,7 @@ export default defineComponent({
     }
 
     const handleNodeClick = (e) => {
+      hideTooltip()
       if (edgeSelectionMode.value) {
         selectNodeForEdge(e.node)
       } else {
@@ -431,15 +468,31 @@ export default defineComponent({
         state.hoveredNode = undefined
         state.hoveredNeighbors = undefined
       }
-
       // Refresh rendering:
       sigma.refresh()
+    }
+
+    const setNodeSizes = () => {
+      const degrees = graph.nodes().map((node) => graph.degree(node))
+      const minDegree = Math.min(...degrees)
+      const maxDegree = Math.max(...degrees)
+      const minSize = 10,
+        maxSize = 15
+      graph.forEachNode((node) => {
+        const degree = graph.degree(node)
+        const size =
+          minSize +
+          ((degree - minDegree) / (maxDegree - minDegree)) *
+            (maxSize - minSize)
+        graph.setNodeAttribute(node, 'size', size)
+      })
     }
 
     const refreshGraph = () => {
       circular.assign(graph)
       const settings = forceAtlas2.inferSettings(graph)
       forceAtlas2.assign(graph, { settings, iterations: 600 })
+      setNodeSizes()
       sigma.refresh()
     }
 
@@ -452,7 +505,6 @@ export default defineComponent({
         size: 10,
         color: NODE_DEFAULT_COLOR
       })
-
       if (forceRender) {
         refreshGraph()
       }
@@ -462,17 +514,34 @@ export default defineComponent({
       if (!edge) {
         return
       }
-
-      graph.addEdge(edge.x, edge.y, {
+      graph.addEdgeWithKey(edge.id, edge.x, edge.y, {
         type: 'line',
         label: edge.description,
         size: 5,
         color: EDGE_DEFAULT_COLOR
       })
-
       if (forceRender) {
         refreshGraph()
       }
+    }
+
+    const deleteDocument = (doc) => {
+      graph.dropNode(doc.id)
+      ctx.emit(DELETE_DOC_EVENT, doc)
+      resetGraph()
+    }
+
+    const deleteEdge = (edge) => {
+      graph.dropEdge(edge.id)
+      ctx.emit(DELETE_EDGE_EVENT, edge)
+      resetGraph()
+    }
+
+    const resetGraph = () => {
+      resetState()
+      hideTooltip()
+      refreshGraph()
+      zoomReset()
     }
 
     /**
@@ -497,22 +566,29 @@ export default defineComponent({
     })
 
     return {
+      tooltip,
+      showTooltip,
+      activeElement,
+      activeElementType,
+
       edgeSelectionMode,
       toggleEdgeSelectionMode,
 
       searchQuery,
       containerRef,
+
       selectDocument,
       createDocument,
-
       renderNetwork,
       searchNetwork,
-
+      deleteDocument,
+      deleteEdge,
       zoomIn,
       zoomOut,
       zoomReset
     }
-  }
+  },
+  components: { NetworkTooltip }
 })
 </script>
 
@@ -531,6 +607,15 @@ export default defineComponent({
       z-index: 1;
       top: 15px;
       left: 15px;
+
+      .edge-creation-status {
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid #c2c2c2;
+        padding: 5px;
+        .directions {
+          font-size: 11px;
+        }
+      }
     }
 
     .actions-pane {
