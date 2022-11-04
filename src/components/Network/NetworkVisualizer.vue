@@ -10,7 +10,7 @@
         class="pl-btn q-mt-lg"
         color="primary"
         label="New Doc"
-        @click="createDocument"
+        @click="createDocument(true)"
       />
     </div>
 
@@ -187,12 +187,17 @@ export default defineComponent({
       showTooltip.value = false
     }
 
-    const createDocument = () => {
+    const createDocument = (firstDoc = false) => {
       $q.dialog({
         component: CreateDocumentModal
-      }).onOk((doc) => {
+      }).onOk(async (doc) => {
         ctx.emit(CREATE_DOC_EVENT, doc)
-        insertNode(doc, true)
+        if (firstDoc) {
+          await nextTick()
+          renderNetwork()
+        } else {
+          insertNode(doc, true)
+        }
       })
     }
 
@@ -376,7 +381,8 @@ export default defineComponent({
           minSize +
           ((degree - minDegree) / (maxDegree - minDegree)) *
             (maxSize - minSize)
-        graph.setNodeAttribute(node, 'size', size)
+        const finalSize = size || minSize
+        graph.setNodeAttribute(node, 'size', finalSize)
       })
     }
 

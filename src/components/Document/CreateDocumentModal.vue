@@ -39,7 +39,7 @@
 <script>
 import { defineComponent, ref } from 'vue'
 import { useDialogPluginComponent } from 'quasar'
-import Document from 'src/api/models/Documents'
+import Document from 'src/api/models/Document'
 import Team from 'src/api/models/Team'
 import useNotify from 'src/composables/useNotify'
 
