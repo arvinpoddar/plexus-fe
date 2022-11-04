@@ -102,6 +102,9 @@ const NODE_DEFAULT_COLOR = '#7635b8'
 const NODE_INACTIVE_COLOR = '#E2E2E2'
 const NODE_SELECTED_COLOR = '#18C97D'
 
+const EDGE_DEFAULT_COLOR = '#C2C2C2'
+const EDGE_ACTIVE_COLOR = '#7635b8'
+
 export default defineComponent({
   name: 'NetworkVisualizer',
   emits: [
@@ -293,12 +296,13 @@ export default defineComponent({
       })
 
       sigma.on('enterEdge', (e) => {
-        console.log(e)
         changeCursor('pointer')
+        graph.setEdgeAttribute(e.edge, 'color', EDGE_ACTIVE_COLOR)
       })
 
       sigma.on('leaveEdge', (e) => {
         changeCursor('auto')
+        graph.setEdgeAttribute(e.edge, 'color', EDGE_DEFAULT_COLOR)
       })
 
       sigma.on('clickNode', (e) => handleNodeClick(e))
@@ -462,7 +466,8 @@ export default defineComponent({
       graph.addEdge(edge.x, edge.y, {
         type: 'line',
         label: edge.description,
-        size: 5
+        size: 5,
+        color: EDGE_DEFAULT_COLOR
       })
 
       if (forceRender) {

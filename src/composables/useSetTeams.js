@@ -17,7 +17,7 @@ export function useSetTeams () {
   const setCurrentTeam = async (team) => {
     try {
       await Team.setCurrentTeam(team)
-      window.location.reload('/app')
+      window.location.href = '/app'
     } catch (err) {
       showError(err, 'Could not switch teams')
     }
