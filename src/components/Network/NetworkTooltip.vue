@@ -1,5 +1,5 @@
 <template>
-  <div id="tooltip" @click="clickDocument">
+  <div id="tooltip" @click="handleTooltipClick">
     <div v-if="activeElementIsDocument">
       <div class="row items-center">
         <div class="a-fake col ellipsis tooltip-title" @click="selectDocument">
@@ -83,8 +83,13 @@ export default defineComponent({
       return d.format('MM/DD/YY h:mma')
     }
 
-    const clickDocument = () => {
-      ctx.emit(CLICK_DOC_EVENT, { node: props.activeElement.id })
+    const handleTooltipClick = () => {
+      if (!props.activeElement) {
+        return
+      }
+      if (activeElementIsDocument.value) {
+        ctx.emit(CLICK_DOC_EVENT, { node: props.activeElement.id })
+      }
     }
 
     const selectDocument = () => {
@@ -122,7 +127,8 @@ export default defineComponent({
       deleteDocument,
       deleteEdge,
       selectDocument,
-      clickDocument
+
+      handleTooltipClick
     }
   }
 })
