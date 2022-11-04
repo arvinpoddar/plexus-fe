@@ -40,12 +40,14 @@
       </div>
 
       <div class="search-bar">
-        <input
+        <PLFieldInput
           v-model="searchQuery"
-          @input="searchNetwork"
+          @update:model-value="searchNetwork"
           @blur="searchNetwork"
-          class="pl-raw-input"
           placeholder="Search network..."
+          debounce="150"
+          bg-color="white"
+          clearable
         />
       </div>
 
