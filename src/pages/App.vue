@@ -54,7 +54,7 @@ import ConfirmLeaveDocumentModal from 'src/components/Document/ConfirmLeaveDocum
 import DocumentViewer from 'src/components/Document/DocumentViewer.vue'
 import NetworkVisualizer from 'src/components/Network/NetworkVisualizer.vue'
 import { useCreateTeam } from 'src/composables/useCreateTeam'
-import Document from 'src/api/models/Documents'
+import Document from 'src/api/models/Document'
 import Plexus from 'src/api'
 
 export default defineComponent({

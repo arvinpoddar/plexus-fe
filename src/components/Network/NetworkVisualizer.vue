@@ -27,6 +27,7 @@
           :activeElementType="activeElementType"
           @delete-doc="deleteDocument"
           @delete-edge="deleteEdge"
+          @select-doc="selectDocument"
         />
       </div>
 
@@ -190,8 +191,13 @@ export default defineComponent({
     const createDocument = () => {
       $q.dialog({
         component: CreateDocumentModal
-      }).onOk((doc) => {
+      }).onOk(async (doc) => {
         ctx.emit(CREATE_DOC_EVENT, doc)
+        if (!sigma) {
+          await nextTick()
+          renderNetwork()
+          await nextTick()
+        }
         insertNode(doc, true)
       })
     }
@@ -201,6 +207,7 @@ export default defineComponent({
       if (!doc) {
         return
       }
+      hideTooltip()
       // Reset previous active doc
       if (selectedDoc.value) {
         graph.setNodeAttribute(selectedDoc.value, 'color', NODE_DEFAULT_COLOR)
@@ -376,12 +383,13 @@ export default defineComponent({
           minSize +
           ((degree - minDegree) / (maxDegree - minDegree)) *
             (maxSize - minSize)
-        graph.setNodeAttribute(node, 'size', size)
+        const finalSize = size || minSize
+        graph.setNodeAttribute(node, 'size', finalSize)
       })
     }
 
     const insertNode = (document, forceRender = false) => {
-      if (!document) {
+      if (!document || graph.hasNode(document.id)) {
         return
       }
       documentMap[document.id] = document

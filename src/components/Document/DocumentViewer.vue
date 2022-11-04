@@ -111,7 +111,7 @@ import DeleteDocumentModal from 'src/components/Document/DeleteDocumentModal.vue
 import Plexus from 'src/api'
 import useNotify from 'src/composables/useNotify'
 import { useQuasar } from 'quasar'
-import Document from 'src/api/models/Documents'
+import Document from 'src/api/models/Document'
 import Team from 'src/api/models/Team'
 import dayjs from 'dayjs'
 import { strictAssign } from 'src/modules/Utils'
@@ -218,7 +218,7 @@ export default defineComponent({
     const fetchDocument = async (docId) => {
       try {
         loading.value = true
-        document.value = await Document.get(currentTeam.value.id, props.docId)
+        document.value = await Document.get(currentTeam.value.id, docId)
         ctx.emit(CLEAN_EVENT)
       } catch (err) {
         showError(err)
@@ -263,7 +263,7 @@ export default defineComponent({
     }
 
     const deleting = ref(false)
-    const deleteDocument = () => {
+    const deleteDocument = (docId) => {
       $q.dialog({
         component: DeleteDocumentModal,
         componentProps: {

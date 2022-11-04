@@ -51,7 +51,7 @@ import { useDialogPluginComponent } from 'quasar'
 import Edge from 'src/api/models/Edge'
 import Team from 'src/api/models/Team'
 import useNotify from 'src/composables/useNotify'
-import Document from 'src/api/models/Documents'
+import Document from 'src/api/models/Document'
 
 export default defineComponent({
   emits: [...useDialogPluginComponent.emits],

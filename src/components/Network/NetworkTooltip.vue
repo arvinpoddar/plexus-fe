@@ -2,7 +2,7 @@
   <div id="tooltip">
     <div v-if="activeElementIsDocument">
       <div class="row items-center">
-        <div class="col ellipsis tooltip-title">
+        <div class="a-fake col ellipsis tooltip-title" @click="selectDocument">
           {{ activeElement.name }}
         </div>
         <q-btn
@@ -51,10 +51,11 @@ import { useQuasar } from 'quasar'
 
 const DELETE_DOC_EVENT = 'delete-doc'
 const DELETE_EDGE_EVENT = 'delete-edge'
+const SELECT_DOC_EVENT = 'select-doc'
 
 export default defineComponent({
   name: 'NetworkTooltip',
-  emits: [DELETE_DOC_EVENT, DELETE_EDGE_EVENT],
+  emits: [DELETE_DOC_EVENT, DELETE_EDGE_EVENT, SELECT_DOC_EVENT],
   props: {
     activeElementType: String,
     activeElement: Object
@@ -79,6 +80,10 @@ export default defineComponent({
     const localDate = (dateString) => {
       const d = dayjs(dateString)
       return d.format('MM/DD/YY h:mma')
+    }
+
+    const selectDocument = () => {
+      ctx.emit(SELECT_DOC_EVENT, props.activeElement)
     }
 
     const deleteDocument = () => {
@@ -110,7 +115,8 @@ export default defineComponent({
       localDate,
 
       deleteDocument,
-      deleteEdge
+      deleteEdge,
+      selectDocument
     }
   }
 })
