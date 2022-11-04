@@ -69,7 +69,6 @@ export default defineComponent({
     const isAuthenticated = ref(false)
     onMounted(async () => {
       isAuthenticated.value = await Plexus.Auth.isAuthenticated()
-      console.log(await Plexus.Auth.isAuthenticated())
     })
 
     return {

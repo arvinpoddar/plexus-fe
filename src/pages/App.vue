@@ -32,6 +32,7 @@
       @select-doc="setActiveDoc"
       @delete-doc="removeDoc"
       @create-doc="addDoc"
+      @create-edge="addEdge"
     />
     <DocumentViewer
       class="col"
@@ -145,6 +146,10 @@ export default defineComponent({
       documents.value.push(newDoc)
     }
 
+    const addEdge = (newEdge) => {
+      edges.value.push(newEdge)
+    }
+
     const setDirty = (val) => {
       activeDocIsDirty.value = val
     }
@@ -172,7 +177,8 @@ export default defineComponent({
       setDirty,
 
       removeDoc,
-      addDoc
+      addDoc,
+      addEdge
     }
   }
 })

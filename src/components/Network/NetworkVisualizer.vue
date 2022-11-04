@@ -32,6 +32,10 @@
       />
       -->
 
+      <div class="network-status">
+        <div v-if="edgeSelectionMode">Edge Creation Mode: ON</div>
+      </div>
+
       <div class="search-bar">
         <input
           v-model="searchQuery"
@@ -60,9 +64,17 @@
         />
       </div>
 
-      <div class="actions-pane flex column q-gutter-y-sm">
+      <div class="actions-pane flex column items-center q-gutter-y-md">
+        <q-toggle
+          v-model="edgeSelectionMode"
+          @update:model-value="toggleEdgeSelectionMode"
+          icon="link"
+          color="primary"
+          round
+          dense
+          size="lg"
+        />
         <q-btn icon="note_add" color="primary" round @click="createDocument" />
-        <q-btn icon="link" color="primary" round @click="createDocument" />
       </div>
     </div>
   </div>
@@ -76,23 +88,36 @@ import circular from 'graphology-layout/circular'
 import forceAtlas2 from 'graphology-layout-forceatlas2'
 import { useQuasar } from 'quasar'
 import CreateDocumentModal from 'src/components/Document/CreateDocumentModal.vue'
+import CreateEdgeModal from 'src/components/Network/CreateEdgeModal.vue'
+import useNotify from 'src/composables/useNotify'
 
 const SELECT_DOC_EVENT = 'select-doc'
 const CREATE_DOC_EVENT = 'create-doc'
 const DELETE_DOC_EVENT = 'delete-doc'
+const CREATE_EDGE_EVENT = 'create-edge'
+const DELETE_EDGE_EVENT = 'create-edge'
 
-const NODE_ACTIVE_COLOR = '#EF382C'
+const NODE_ACTIVE_COLOR = '#176ceb'
+const NODE_DEFAULT_COLOR = '#7635b8'
 const NODE_INACTIVE_COLOR = '#E2E2E2'
+const NODE_SELECTED_COLOR = '#18C97D'
 
 export default defineComponent({
   name: 'NetworkVisualizer',
-  emits: [SELECT_DOC_EVENT, CREATE_DOC_EVENT, DELETE_DOC_EVENT],
+  emits: [
+    SELECT_DOC_EVENT,
+    CREATE_DOC_EVENT,
+    DELETE_DOC_EVENT,
+    CREATE_EDGE_EVENT,
+    DELETE_EDGE_EVENT
+  ],
   props: {
     documents: Array,
     edges: Array
   },
   setup (props, ctx) {
     const $q = useQuasar()
+    const { showError } = useNotify()
 
     const searchQuery = ref('')
     const containerRef = ref(null)
@@ -115,14 +140,94 @@ export default defineComponent({
       })
     }
 
+    const activeDoc = ref(null)
     const selectDocument = (doc) => {
-      if (doc) {
-        ctx.emit(SELECT_DOC_EVENT, doc)
+      if (!doc) {
+        return
       }
+      // Reset previous active doc
+      if (activeDoc.value) {
+        graph.setNodeAttribute(activeDoc.value, 'color', NODE_DEFAULT_COLOR)
+      }
+      graph.setNodeAttribute(doc.id, 'color', NODE_ACTIVE_COLOR)
+      activeDoc.value = doc.id
+      ctx.emit(SELECT_DOC_EVENT, doc)
     }
 
     const getDocumentWithId = (id) => {
       return props.documents.find((d) => d.id === id) || null
+    }
+
+    const edgeSelectionMode = ref(false)
+    const edgeSelections = reactive({ from: null, to: null })
+
+    const toggleEdgeSelectionMode = () => {
+      if (!edgeSelectionMode.value) {
+        resetEdgeSelections()
+      }
+    }
+
+    const selectNodeForEdge = (node) => {
+      if (!edgeSelectionMode.value) {
+        return
+      }
+
+      if (!edgeSelections.from) {
+        graph.setNodeAttribute(node, 'color', NODE_SELECTED_COLOR)
+        edgeSelections.from = node
+      } else if (!edgeSelections.to) {
+        graph.setNodeAttribute(node, 'color', NODE_SELECTED_COLOR)
+        edgeSelections.to = node
+      }
+
+      if (edgeSelections.from === edgeSelections.to) {
+        resetEdgeSelections()
+      } else if (edgeSelections.from && edgeSelections.to) {
+        createEdge(edgeSelections.from, edgeSelections.to)
+      }
+    }
+
+    const createEdge = (nodeStartId, nodeEndId) => {
+      const startDoc = getDocumentWithId(nodeStartId)
+      const endDoc = getDocumentWithId(nodeEndId)
+
+      const edgeId = [nodeStartId, nodeEndId].sort().join('-')
+      if (props.edges.find((e) => e.id === edgeId)) {
+        showError(null, 'Edge already exists')
+        resetEdgeSelections()
+        return
+      }
+
+      $q.dialog({
+        component: CreateEdgeModal,
+        componentProps: {
+          from: startDoc,
+          to: endDoc
+        }
+      })
+        .onOk((edge) => {
+          ctx.emit(CREATE_EDGE_EVENT, edge)
+          insertEdge(edge, true)
+          resetEdgeSelections()
+        })
+        .onDismiss(() => {
+          resetEdgeSelections()
+        })
+    }
+
+    const resetEdgeSelections = () => {
+      if (edgeSelections.from) {
+        graph.setNodeAttribute(
+          edgeSelections.from,
+          'color',
+          NODE_DEFAULT_COLOR
+        )
+      }
+      if (edgeSelections.to) {
+        graph.setNodeAttribute(edgeSelections.to, 'color', NODE_DEFAULT_COLOR)
+      }
+      edgeSelections.from = null
+      edgeSelections.to = null
     }
 
     const renderNetwork = () => {
@@ -132,16 +237,21 @@ export default defineComponent({
       }
 
       for (const document of props.documents) {
-        insertNode(document)
+        try {
+          insertNode(document)
+        } catch (err) {
+          console.error(err)
+        }
       }
 
-      graph.addEdge('rnQtwTR9Kx5mXkGKv8tl', 'vXJD8CLWBPV04Fytk75L', {
-        type: 'line',
-        label: 'test',
-        size: 5
-      })
+      for (const edge of props.edges) {
+        try {
+          insertEdge(edge)
+        } catch (err) {
+          console.error(err)
+        }
+      }
 
-      /*
       const degrees = graph.nodes().map((node) => graph.degree(node))
       const minDegree = Math.min(...degrees)
       const maxDegree = Math.max(...degrees)
@@ -149,15 +259,12 @@ export default defineComponent({
         maxSize = 15
       graph.forEachNode((node) => {
         const degree = graph.degree(node)
-        graph.setNodeAttribute(
-          node,
-          'size',
+        const size =
           minSize +
-            ((degree - minDegree) / (maxDegree - minDegree)) *
-              (maxSize - minSize)
-        )
+          ((degree - minDegree) / (maxDegree - minDegree)) *
+            (maxSize - minSize)
+        graph.setNodeAttribute(node, 'size', size)
       })
-      */
 
       circular.assign(graph)
       const settings = forceAtlas2.inferSettings(graph)
@@ -169,18 +276,32 @@ export default defineComponent({
         maxCameraRatio: 10,
         renderEdgeLabels: true,
         enableEdgeHovering: true,
-        allowInvalidContainer: true
+        allowInvalidContainer: true,
+        enableEdgeClickEvents: true,
+        enableEdgeWheelEvents: true,
+        enableEdgeHoverEvents: 'debounce'
       })
 
       camera = sigma.getCamera()
 
-      sigma.on('clickNode', (e) => {
-        const doc = getDocumentWithId(e.node)
-        selectDocument(doc)
+      sigma.on('enterNode', (e) => {
+        changeCursor('pointer')
       })
-      sigma.on('clickEdge', (e) => {
+
+      sigma.on('leaveNode', (e) => {
+        changeCursor('auto')
+      })
+
+      sigma.on('enterEdge', (e) => {
         console.log(e)
+        changeCursor('pointer')
       })
+
+      sigma.on('leaveEdge', (e) => {
+        changeCursor('auto')
+      })
+
+      sigma.on('clickNode', (e) => handleNodeClick(e))
 
       sigma.on('enterNode', ({ node }) => {
         setHoveredNode(node)
@@ -233,6 +354,25 @@ export default defineComponent({
 
         return res
       })
+    }
+
+    const changeCursor = (cursor) => {
+      if (containerRef.value) {
+        containerRef.value.style.cursor = cursor
+      }
+    }
+
+    const handleNodeClick = (e) => {
+      if (edgeSelectionMode.value) {
+        selectNodeForEdge(e.node)
+      } else {
+        const doc = getDocumentWithId(e.node)
+        const nodePosition = sigma.getNodeDisplayData(e.node)
+        sigma.getCamera().animate(nodePosition, {
+          duration: 500
+        })
+        selectDocument(doc)
+      }
     }
 
     const searchNetwork = () => {
@@ -306,7 +446,23 @@ export default defineComponent({
       graph.addNode(document.id, {
         label: document.name,
         size: 10,
-        color: NODE_ACTIVE_COLOR
+        color: NODE_DEFAULT_COLOR
+      })
+
+      if (forceRender) {
+        refreshGraph()
+      }
+    }
+
+    const insertEdge = (edge, forceRender = false) => {
+      if (!edge) {
+        return
+      }
+
+      graph.addEdge(edge.x, edge.y, {
+        type: 'line',
+        label: edge.description,
+        size: 5
       })
 
       if (forceRender) {
@@ -336,6 +492,9 @@ export default defineComponent({
     })
 
     return {
+      edgeSelectionMode,
+      toggleEdgeSelectionMode,
+
       searchQuery,
       containerRef,
       selectDocument,
@@ -361,6 +520,13 @@ export default defineComponent({
 
   .network-visualizer {
     position: relative;
+
+    .network-status {
+      position: absolute;
+      z-index: 1;
+      top: 15px;
+      left: 15px;
+    }
 
     .actions-pane {
       position: absolute;
