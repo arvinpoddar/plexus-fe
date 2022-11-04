@@ -188,7 +188,7 @@ export default defineComponent({
       showTooltip.value = false
     }
 
-    const createDocument = () => {
+    const createDocument = (firstDoc = false) => {
       $q.dialog({
         component: CreateDocumentModal
       }).onOk(async (doc) => {
