@@ -129,11 +129,14 @@ export default defineComponent({
 
     const searchQuery = ref('')
     const containerRef = ref(null)
+    const documentMap = reactive({})
+    const edgeMap = reactive({})
 
     const graph = new Graph()
     let sigma = null
     let camera = null
-    const state = reactive({
+
+    const interactionState = reactive({
       hoveredNode: undefined,
       selectedNode: '',
       suggestions: undefined,
@@ -141,18 +144,18 @@ export default defineComponent({
     })
 
     const resetState = () => {
-      state.hoveredNode = undefined
-      state.selectedNode = ''
-      state.suggestions = undefined
-      state.hoveredNeighbors = undefined
+      interactionState.hoveredNode = undefined
+      interactionState.selectedNode = ''
+      interactionState.suggestions = undefined
+      interactionState.hoveredNeighbors = undefined
     }
 
     const getDocumentWithId = (id) => {
-      return props.documents.find((d) => d.id === id) || null
+      return documentMap[id] || null
     }
 
     const getEdgeWithId = (id) => {
-      return props.edges.find((e) => e.id === id) || null
+      return edgeMap[id] || null
     }
 
     const tooltip = ref(null)
@@ -193,17 +196,17 @@ export default defineComponent({
       })
     }
 
-    const activeDoc = ref(null)
+    const selectedDoc = ref(null)
     const selectDocument = (doc) => {
       if (!doc) {
         return
       }
       // Reset previous active doc
-      if (activeDoc.value) {
-        graph.setNodeAttribute(activeDoc.value, 'color', NODE_DEFAULT_COLOR)
+      if (selectedDoc.value) {
+        graph.setNodeAttribute(selectedDoc.value, 'color', NODE_DEFAULT_COLOR)
       }
       graph.setNodeAttribute(doc.id, 'color', NODE_ACTIVE_COLOR)
-      activeDoc.value = doc.id
+      selectedDoc.value = doc.id
       ctx.emit(SELECT_DOC_EVENT, doc)
     }
 
@@ -277,6 +280,179 @@ export default defineComponent({
       }
       edgeSelections.from = null
       edgeSelections.to = null
+    }
+
+    const changeCursor = (cursor) => {
+      if (containerRef.value) {
+        containerRef.value.style.cursor = cursor
+      }
+    }
+
+    const handleNodeClick = (e) => {
+      hideTooltip()
+      if (edgeSelectionMode.value) {
+        selectNodeForEdge(e.node)
+      } else {
+        const doc = getDocumentWithId(e.node)
+        const nodePosition = sigma.getNodeDisplayData(e.node)
+        sigma.getCamera().animate(nodePosition, {
+          duration: 500
+        })
+        selectDocument(doc)
+      }
+    }
+
+    const searchNetwork = () => {
+      const query = searchQuery.value
+      if (query) {
+        const lcQuery = query.toLowerCase()
+        const suggestions = graph
+          .nodes()
+          .map((n) => ({ id: n, label: graph.getNodeAttribute(n, 'label') }))
+          .filter((n) => searchNode(n, lcQuery))
+
+        if (suggestions.length === 1) {
+          interactionState.selectedNode = suggestions[0].id
+
+          // Move the camera to center it on the selected node:
+          const nodePosition = sigma.getNodeDisplayData(
+            interactionState.selectedNode
+          )
+          sigma.getCamera().animate(nodePosition, {
+            duration: 500
+          })
+        } else {
+          interactionState.selectedNode = undefined
+        }
+        interactionState.suggestions = new Set(suggestions.map(({ id }) => id))
+      } else {
+        interactionState.selectedNode = undefined
+        interactionState.suggestions = undefined
+      }
+
+      // Refresh rendering:
+      sigma.refresh()
+    }
+
+    const searchNode = (node, query) => {
+      const doc = getDocumentWithId(node.id)
+      const searchFields = ['name', 'content']
+      let documentSearchBody = ''
+      for (const field of searchFields) {
+        documentSearchBody += doc[field] + '~~~~~'
+      }
+      if (doc.author) {
+        documentSearchBody += `${doc.author.first_name} ${doc.author.last_name}`
+      }
+      return documentSearchBody.toLowerCase().includes(query)
+    }
+
+    // Render nodes accordingly to the internal interactionState:
+    // 1. If a node is selected, it is highlighted
+    // 2. If there is query, all non-matching nodes are greyed
+    // 3. If there is a hovered node, all non-neighbor nodes are greyed
+
+    const setHoveredNode = (node) => {
+      if (node) {
+        interactionState.hoveredNode = node
+        interactionState.hoveredNeighbors = new Set(graph.neighbors(node))
+      } else {
+        interactionState.hoveredNode = undefined
+        interactionState.hoveredNeighbors = undefined
+      }
+      // Refresh rendering:
+      sigma.refresh()
+    }
+
+    const setNodeSizes = () => {
+      const degrees = graph.nodes().map((node) => graph.degree(node))
+      const minDegree = Math.min(...degrees)
+      const maxDegree = Math.max(...degrees)
+      const minSize = 10,
+        maxSize = 15
+      graph.forEachNode((node) => {
+        const degree = graph.degree(node)
+        const size =
+          minSize +
+          ((degree - minDegree) / (maxDegree - minDegree)) *
+            (maxSize - minSize)
+        graph.setNodeAttribute(node, 'size', size)
+      })
+    }
+
+    const insertNode = (document, forceRender = false) => {
+      if (!document) {
+        return
+      }
+      documentMap[document.id] = document
+      graph.addNode(document.id, {
+        label: document.name,
+        size: 10,
+        color: NODE_DEFAULT_COLOR
+      })
+      if (forceRender) {
+        refreshGraph()
+      }
+    }
+
+    const insertEdge = (edge, forceRender = false) => {
+      if (!edge) {
+        return
+      }
+      edgeMap[edge.id] = edge
+      graph.addEdgeWithKey(edge.id, edge.x, edge.y, {
+        type: 'line',
+        label: edge.description,
+        size: 5,
+        color: EDGE_DEFAULT_COLOR
+      })
+      if (forceRender) {
+        refreshGraph()
+      }
+    }
+
+    const deleteDocument = (doc) => {
+      documentMap[doc.id] = undefined
+      graph.dropNode(doc.id)
+      ctx.emit(DELETE_DOC_EVENT, doc)
+      resetGraph()
+    }
+
+    const deleteEdge = (edge) => {
+      edgeMap[edge.id] = undefined
+      graph.dropEdge(edge.id)
+      ctx.emit(DELETE_EDGE_EVENT, edge)
+      resetGraph()
+    }
+
+    const refreshGraph = () => {
+      circular.assign(graph)
+      const settings = forceAtlas2.inferSettings(graph)
+      forceAtlas2.assign(graph, { settings, iterations: 600 })
+      setNodeSizes()
+      sigma.refresh()
+    }
+
+    const resetGraph = () => {
+      resetState()
+      hideTooltip()
+      refreshGraph()
+      zoomReset()
+    }
+
+    /**
+     * Camera zoom controls
+     */
+    const zoomIn = () => {
+      camera?.animatedZoom({ duration: 600 })
+    }
+
+    const zoomOut = () => {
+      camera?.animatedUnzoom({ duration: 600 })
+    }
+
+    const zoomReset = () => {
+      camera?.animatedReset({ duration: 600 })
     }
 
     const renderNetwork = () => {
@@ -357,17 +533,20 @@ export default defineComponent({
         const res = { ...data }
 
         if (
-          state.hoveredNeighbors &&
-          !state.hoveredNeighbors.has(node) &&
-          state.hoveredNode !== node
+          interactionState.hoveredNeighbors &&
+          !interactionState.hoveredNeighbors.has(node) &&
+          interactionState.hoveredNode !== node
         ) {
           res.label = undefined
           res.color = NODE_INACTIVE_COLOR
         }
 
-        if (state.selectedNode === node) {
+        if (interactionState.selectedNode === node) {
           res.highlighted = true
-        } else if (state.suggestions && !state.suggestions.has(node)) {
+        } else if (
+          interactionState.suggestions &&
+          !interactionState.suggestions.has(node)
+        ) {
           res.label = undefined
           res.color = NODE_INACTIVE_COLOR
         }
@@ -375,7 +554,7 @@ export default defineComponent({
         return res
       })
 
-      // Render edges accordingly to the internal state:
+      // Render edges accordingly to the internal interactionState:
       // 1. If a node is hovered, the edge is hidden if it is not connected to the
       //    node
       // 2. If there is a query, the edge is only visible if it connects two
@@ -383,183 +562,23 @@ export default defineComponent({
       sigma.setSetting('edgeReducer', (edge, data) => {
         const res = { ...data }
 
-        if (state.hoveredNode && !graph.hasExtremity(edge, state.hoveredNode)) {
+        if (
+          interactionState.hoveredNode &&
+          !graph.hasExtremity(edge, interactionState.hoveredNode)
+        ) {
           res.hidden = true
         }
 
         if (
-          state.suggestions &&
-          (!state.suggestions.has(graph.source(edge)) ||
-            !state.suggestions.has(graph.target(edge)))
+          interactionState.suggestions &&
+          (!interactionState.suggestions.has(graph.source(edge)) ||
+            !interactionState.suggestions.has(graph.target(edge)))
         ) {
           res.hidden = true
         }
 
         return res
       })
-    }
-
-    const changeCursor = (cursor) => {
-      if (containerRef.value) {
-        containerRef.value.style.cursor = cursor
-      }
-    }
-
-    const handleNodeClick = (e) => {
-      hideTooltip()
-      if (edgeSelectionMode.value) {
-        selectNodeForEdge(e.node)
-      } else {
-        const doc = getDocumentWithId(e.node)
-        const nodePosition = sigma.getNodeDisplayData(e.node)
-        sigma.getCamera().animate(nodePosition, {
-          duration: 500
-        })
-        selectDocument(doc)
-      }
-    }
-
-    const searchNetwork = () => {
-      const query = searchQuery.value
-      if (query) {
-        const lcQuery = query.toLowerCase()
-        const suggestions = graph
-          .nodes()
-          .map((n) => ({ id: n, label: graph.getNodeAttribute(n, 'label') }))
-          .filter((n) => searchNode(n, lcQuery))
-
-        if (suggestions.length === 1) {
-          state.selectedNode = suggestions[0].id
-
-          // Move the camera to center it on the selected node:
-          const nodePosition = sigma.getNodeDisplayData(state.selectedNode)
-          sigma.getCamera().animate(nodePosition, {
-            duration: 500
-          })
-        } else {
-          state.selectedNode = undefined
-        }
-        state.suggestions = new Set(suggestions.map(({ id }) => id))
-      } else {
-        state.selectedNode = undefined
-        state.suggestions = undefined
-      }
-
-      // Refresh rendering:
-      sigma.refresh()
-    }
-
-    const searchNode = (node, query) => {
-      const searchFields = ['label']
-      let nodeSearchBody = ''
-      for (const field of searchFields) {
-        nodeSearchBody += node[field] + '~~~~~'
-      }
-      return nodeSearchBody.toLowerCase().includes(query)
-    }
-
-    // Render nodes accordingly to the internal state:
-    // 1. If a node is selected, it is highlighted
-    // 2. If there is query, all non-matching nodes are greyed
-    // 3. If there is a hovered node, all non-neighbor nodes are greyed
-
-    function setHoveredNode (node) {
-      if (node) {
-        state.hoveredNode = node
-        state.hoveredNeighbors = new Set(graph.neighbors(node))
-      } else {
-        state.hoveredNode = undefined
-        state.hoveredNeighbors = undefined
-      }
-      // Refresh rendering:
-      sigma.refresh()
-    }
-
-    const setNodeSizes = () => {
-      const degrees = graph.nodes().map((node) => graph.degree(node))
-      const minDegree = Math.min(...degrees)
-      const maxDegree = Math.max(...degrees)
-      const minSize = 10,
-        maxSize = 15
-      graph.forEachNode((node) => {
-        const degree = graph.degree(node)
-        const size =
-          minSize +
-          ((degree - minDegree) / (maxDegree - minDegree)) *
-            (maxSize - minSize)
-        graph.setNodeAttribute(node, 'size', size)
-      })
-    }
-
-    const refreshGraph = () => {
-      circular.assign(graph)
-      const settings = forceAtlas2.inferSettings(graph)
-      forceAtlas2.assign(graph, { settings, iterations: 600 })
-      setNodeSizes()
-      sigma.refresh()
-    }
-
-    const insertNode = (document, forceRender = false) => {
-      if (!document) {
-        return
-      }
-      graph.addNode(document.id, {
-        label: document.name,
-        size: 10,
-        color: NODE_DEFAULT_COLOR
-      })
-      if (forceRender) {
-        refreshGraph()
-      }
-    }
-
-    const insertEdge = (edge, forceRender = false) => {
-      if (!edge) {
-        return
-      }
-      graph.addEdgeWithKey(edge.id, edge.x, edge.y, {
-        type: 'line',
-        label: edge.description,
-        size: 5,
-        color: EDGE_DEFAULT_COLOR
-      })
-      if (forceRender) {
-        refreshGraph()
-      }
-    }
-
-    const deleteDocument = (doc) => {
-      graph.dropNode(doc.id)
-      ctx.emit(DELETE_DOC_EVENT, doc)
-      resetGraph()
-    }
-
-    const deleteEdge = (edge) => {
-      graph.dropEdge(edge.id)
-      ctx.emit(DELETE_EDGE_EVENT, edge)
-      resetGraph()
-    }
-
-    const resetGraph = () => {
-      resetState()
-      hideTooltip()
-      refreshGraph()
-      zoomReset()
-    }
-
-    /**
-     * Camera zoom controls
-     */
-    const zoomIn = () => {
-      camera?.animatedZoom({ duration: 600 })
-    }
-
-    const zoomOut = () => {
-      camera?.animatedUnzoom({ duration: 600 })
-    }
-
-    const zoomReset = () => {
-      camera?.animatedReset({ duration: 600 })
     }
 
     onMounted(async () => {

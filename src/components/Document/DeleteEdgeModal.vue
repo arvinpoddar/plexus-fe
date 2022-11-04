@@ -2,15 +2,13 @@
   <q-dialog ref="dialogRef" @hide="onDialogHide" class="delete-doc-modal">
     <div class="pl-card modal-sm">
       <div class="pl-card-title q-pr-md">
-        <div>Confirm Delete Document</div>
+        <div>Confirm Delete Edge</div>
         <q-space />
         <q-btn icon="close" color="grey-8" round flat dense v-close-popup />
       </div>
 
       <q-card-section>
-        Are you sure you want to delete
-        <span class="f-bold"> {{ document.name }} </span>? This cannot be
-        undone.
+        Are you sure you want to delete this edge? This cannot be undone.
       </q-card-section>
 
       <div class="text-right q-pa-md q-gutter-x-md">
@@ -24,7 +22,7 @@
           label="Delete"
           class="pl-btn"
           color="negative"
-          @click="deleteDocument"
+          @click="deleteEdge"
         />
       </div>
     </div>
@@ -34,14 +32,14 @@
 <script>
 import { defineComponent, ref } from 'vue'
 import { useDialogPluginComponent } from 'quasar'
-import Document from 'src/api/models/Documents'
+import Edge from 'src/api/models/Edge'
 import Team from 'src/api/models/Team'
 import useNotify from 'src/composables/useNotify'
 
 export default defineComponent({
   emits: [...useDialogPluginComponent.emits],
   props: {
-    document: Object
+    edge: Object
   },
   setup (props) {
     const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } =
@@ -50,13 +48,13 @@ export default defineComponent({
     const { showError } = useNotify()
     const loading = ref(false)
 
-    const deleteDocument = async () => {
+    const deleteEdge = async () => {
       try {
         loading.value = true
         const team = await Team.getCurrentTeam()
-        const doc = new Document(props.document)
-        await doc.deleteForTeam(team.id)
-        onDialogOK(props.document)
+        const edge = new Edge(props.edge)
+        await edge.deleteForTeam(team.id)
+        onDialogOK(props.edge)
       } catch (err) {
         showError(err)
       } finally {
@@ -84,7 +82,7 @@ export default defineComponent({
       onCancelClick: onDialogCancel,
 
       loading,
-      deleteDocument
+      deleteEdge
     }
   }
 })

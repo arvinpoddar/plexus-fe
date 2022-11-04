@@ -44,7 +44,10 @@
 
 <script>
 import { defineComponent, computed } from 'vue'
+import DeleteDocumentModal from 'src/components/Document/DeleteDocumentModal.vue'
+import DeleteEdgeModal from 'src/components/Document/DeleteEdgeModal.vue'
 import dayjs from 'dayjs'
+import { useQuasar } from 'quasar'
 
 const DELETE_DOC_EVENT = 'delete-doc'
 const DELETE_EDGE_EVENT = 'delete-edge'
@@ -57,6 +60,7 @@ export default defineComponent({
     activeElement: Object
   },
   setup (props, ctx) {
+    const $q = useQuasar()
     const activeElementIsEdge = computed(
       () => props.activeElementType === 'edge'
     )
@@ -78,11 +82,25 @@ export default defineComponent({
     }
 
     const deleteDocument = () => {
-      ctx.emit(DELETE_DOC_EVENT, props.activeElement)
+      $q.dialog({
+        component: DeleteDocumentModal,
+        componentProps: {
+          document: props.activeElement
+        }
+      }).onOk(() => {
+        ctx.emit(DELETE_DOC_EVENT, props.activeElement)
+      })
     }
 
     const deleteEdge = () => {
-      ctx.emit(DELETE_EDGE_EVENT, props.activeElement)
+      $q.dialog({
+        component: DeleteEdgeModal,
+        componentProps: {
+          edge: props.activeElement
+        }
+      }).onOk(() => {
+        ctx.emit(DELETE_EDGE_EVENT, props.activeElement)
+      })
     }
 
     return {
