@@ -28,6 +28,7 @@
           @delete-doc="deleteDocument"
           @delete-edge="deleteEdge"
           @select-doc="selectDocument"
+          @click-doc="handleNodeClick"
         />
       </div>
 
@@ -612,6 +613,7 @@ export default defineComponent({
       renderNetwork,
       searchNetwork,
       deleteDocument,
+      handleNodeClick,
       deleteEdge,
       zoomIn,
       zoomOut,
