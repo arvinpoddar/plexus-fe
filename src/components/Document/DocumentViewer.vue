@@ -219,7 +219,6 @@ export default defineComponent({
       try {
         loading.value = true
         document.value = await Document.get(currentTeam.value.id, props.docId)
-        console.log(document.value)
         ctx.emit(CLEAN_EVENT)
       } catch (err) {
         showError(err)
