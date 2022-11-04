@@ -108,6 +108,7 @@ const NODE_SELECTED_COLOR = '#18C97D'
 
 const EDGE_DEFAULT_COLOR = '#C2C2C2'
 const EDGE_ACTIVE_COLOR = '#7635b8'
+const EDGE_INACTIVE_COLOR = '#EFEFEF'
 
 export default defineComponent({
   name: 'NetworkVisualizer',
@@ -575,7 +576,7 @@ export default defineComponent({
           interactionState.hoveredNode &&
           !graph.hasExtremity(edge, interactionState.hoveredNode)
         ) {
-          res.hidden = true
+          res.color = EDGE_INACTIVE_COLOR
         }
 
         if (
@@ -583,7 +584,7 @@ export default defineComponent({
           (!interactionState.suggestions.has(graph.source(edge)) ||
             !interactionState.suggestions.has(graph.target(edge)))
         ) {
-          res.hidden = true
+          res.color = EDGE_INACTIVE_COLOR
         }
 
         return res
