@@ -20,14 +20,36 @@ import {
 
 const LOCAL_EDIT_EVENT = 'local-edit'
 const SAVE_EVENT = 'save'
+const DOWNLOAD_EVENT = 'download'
 
 export default defineComponent({
   name: 'MarkdownEditor',
-  emits: [LOCAL_EDIT_EVENT, SAVE_EVENT],
+  emits: [LOCAL_EDIT_EVENT, SAVE_EVENT, DOWNLOAD_EVENT],
   props: {
     source: String
   },
   setup (props, ctx) {
+    const emitLocalEdit = (e) => {
+      if (e.changedRanges.length) {
+        ctx.emit(LOCAL_EDIT_EVENT, {
+          content: e.state.doc.toString()
+        })
+      }
+    }
+
+    const emitSave = (e) => {
+      ctx.emit(SAVE_EVENT)
+    }
+
+    const keyMapping = [
+      {
+        key: 'Ctrl-s',
+        mac: 'Cmd-s',
+        preventDefault: true,
+        run: emitSave
+      }
+    ]
+
     const initEditor = () => {
       // const parent = document.getElementById('editor-container')
       const editor = new EditorView({
@@ -41,7 +63,7 @@ export default defineComponent({
           }),
           oneDarkTheme,
           syntaxHighlighting(oneDarkHighlightStyle),
-          keymap.of([indentWithTab]),
+          keymap.of([indentWithTab, ...keyMapping]),
           EditorView.lineWrapping,
           EditorView.updateListener.of((e) => emitLocalEdit(e))
         ]
@@ -49,18 +71,6 @@ export default defineComponent({
 
       const parent = document.getElementById('editor-container')
       parent.appendChild(editor.dom)
-    }
-
-    const emitLocalEdit = (e) => {
-      if (e.changedRanges.length) {
-        ctx.emit(LOCAL_EDIT_EVENT, {
-          content: e.state.doc.toString()
-        })
-      }
-    }
-
-    const emitSave = (e) => {
-      ctx.emit(SAVE_EVENT)
     }
 
     onMounted(() => initEditor())

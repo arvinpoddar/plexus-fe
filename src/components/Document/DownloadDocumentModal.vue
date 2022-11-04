@@ -28,7 +28,6 @@
             class="pl-btn"
             color="primary"
             type="submit"
-            :loading="loading"
           />
         </div>
       </q-form>
