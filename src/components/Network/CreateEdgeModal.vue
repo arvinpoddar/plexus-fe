@@ -19,13 +19,13 @@
             v-model="newEdgeDescription"
             field="Edge Description*"
             required
-            maxlength="30"
+            maxlength="50"
             focus
           >
             <template v-slot:label>
               <PLCharacterCount
                 :length="newEdgeDescription.length"
-                :maxlength="30"
+                :maxlength="50"
               />
             </template>
           </PLFieldInput>
