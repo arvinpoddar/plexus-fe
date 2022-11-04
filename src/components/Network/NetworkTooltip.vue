@@ -22,7 +22,9 @@
     </div>
     <div v-else-if="activeElementIsEdge">
       <div class="row items-center">
-        <div class="col tooltip-title">{{ activeElement.description }}</div>
+        <div class="col ellipsis tooltip-title">
+          {{ activeElement.description }}
+        </div>
         <q-btn
           size="sm"
           flat
