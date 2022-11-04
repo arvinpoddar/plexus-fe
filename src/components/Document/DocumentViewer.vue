@@ -274,11 +274,6 @@ export default defineComponent({
       })
     }
 
-    onBeforeMount(async () => {
-      currentUser.value = await Plexus.Auth.getUserData()
-      currentTeam.value = await Team.getCurrentTeam()
-    })
-
     const changeDocument = (id) => {
       if (id) {
         fetchDocument(id)
@@ -286,6 +281,11 @@ export default defineComponent({
         document.value = null
       }
     }
+
+    onBeforeMount(async () => {
+      currentUser.value = await Plexus.Auth.getUserData()
+      currentTeam.value = await Team.getCurrentTeam()
+    })
 
     onMounted(() => {
       changeDocument(props.docId)
