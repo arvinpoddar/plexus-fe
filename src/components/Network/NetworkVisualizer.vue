@@ -48,20 +48,20 @@
       </div>
 
       <div class="controls-pane flex column q-gutter-y-sm">
-        <q-btn icon="zoom_in" color="primary" round @click="zoomIn" size="sm" />
+        <q-btn icon="zoom_in" color="primary" round size="sm" @click="zoomIn" />
         <q-btn
           icon="zoom_out"
           color="primary"
           round
-          @click="zoomOut"
           size="sm"
+          @click="zoomOut"
         />
         <q-btn
           icon="center_focus_weak"
           color="primary"
           round
-          @click="zoomReset"
           size="sm"
+          @click="zoomReset"
         />
       </div>
 
@@ -109,6 +109,9 @@ const EDGE_ACTIVE_COLOR = '#7635b8'
 
 export default defineComponent({
   name: 'NetworkVisualizer',
+  components: {
+    NetworkTooltip
+  },
   emits: [
     SELECT_DOC_EVENT,
     CREATE_DOC_EVENT,
@@ -587,8 +590,7 @@ export default defineComponent({
       zoomOut,
       zoomReset
     }
-  },
-  components: { NetworkTooltip }
+  }
 })
 </script>
 
