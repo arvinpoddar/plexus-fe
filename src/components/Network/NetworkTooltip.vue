@@ -18,6 +18,15 @@
       <div class="ellipsis">
         Last edited {{ localDate(activeElement.last_updated) }}
       </div>
+      <q-btn
+        class="q-px-md q-mt-sm"
+        color="primary"
+        label="Fetch suggestions"
+        size="sm"
+        dense
+        no-caps
+        @click.stop="getSuggestions"
+      />
       <div class="q-mt-sm tooltip-preview">{{ activeElement.content }}</div>
     </div>
     <div v-else-if="activeElementIsEdge">
@@ -55,10 +64,16 @@ const DELETE_DOC_EVENT = 'delete-doc'
 const DELETE_EDGE_EVENT = 'delete-edge'
 const SELECT_DOC_EVENT = 'select-doc'
 const CLICK_DOC_EVENT = 'click-doc'
+const GET_SUGGESTIONS_EVENT = 'get-suggestions'
 
 export default defineComponent({
   name: 'NetworkTooltip',
-  emits: [DELETE_DOC_EVENT, DELETE_EDGE_EVENT, SELECT_DOC_EVENT],
+  emits: [
+    DELETE_DOC_EVENT,
+    DELETE_EDGE_EVENT,
+    SELECT_DOC_EVENT,
+    GET_SUGGESTIONS_EVENT
+  ],
   props: {
     activeElementType: String,
     activeElement: Object
@@ -120,6 +135,10 @@ export default defineComponent({
       })
     }
 
+    const getSuggestions = () => {
+      ctx.emit(GET_SUGGESTIONS_EVENT, props.activeElement.id)
+    }
+
     return {
       activeElementIsDocument,
       activeElementIsEdge,
@@ -130,7 +149,8 @@ export default defineComponent({
       deleteEdge,
       selectDocument,
 
-      handleTooltipClick
+      handleTooltipClick,
+      getSuggestions
     }
   }
 })

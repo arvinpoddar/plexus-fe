@@ -1,5 +1,27 @@
 import Plexus from 'src/api'
 import { strictAssign } from 'src/modules/Utils'
+import Edge from './Edge'
+
+class Suggestion {
+  constructor (params) {
+    this.id = null
+    this.description = ''
+    this.similarity = 0
+    this.x = Document
+    this.y = Document
+
+    strictAssign(this, params)
+  }
+
+  toEdge () {
+    return new Edge({
+      id: '',
+      description: this.description,
+      x: this.x.id,
+      y: this.y.id
+    })
+  }
+}
 
 class Document {
   constructor (params) {
@@ -40,6 +62,12 @@ class Document {
 
   async deleteForTeam (teamId) {
     return await Plexus.API.delete(`teams/${teamId}/documents/${this.id}`)
+  }
+
+  async getSuggestions (teamId) {
+    return (
+      await Plexus.API.get(`teams/${teamId}/documents/${this.id}/suggestions`)
+    ).map((s) => new Suggestion(s))
   }
 }
 

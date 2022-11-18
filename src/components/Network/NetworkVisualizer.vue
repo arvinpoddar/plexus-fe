@@ -29,6 +29,7 @@
           @delete-edge="deleteEdge"
           @select-doc="selectDocument"
           @click-doc="handleNodeClick"
+          @get-suggestions="openSuggestionsModal"
         />
       </div>
 
@@ -96,6 +97,7 @@ import CreateDocumentModal from 'src/components/Document/CreateDocumentModal.vue
 import CreateEdgeModal from 'src/components/Network/CreateEdgeModal.vue'
 import NetworkTooltip from 'src/components/Network/NetworkTooltip.vue'
 import useNotify from 'src/composables/useNotify'
+import FetchSuggestionsModal from './FetchSuggestionsModal.vue'
 
 const SELECT_DOC_EVENT = 'select-doc'
 const CREATE_DOC_EVENT = 'create-doc'
@@ -445,6 +447,27 @@ export default defineComponent({
       sigma.refresh()
     }
 
+    const openSuggestionsModal = (docId) => {
+      const doc = getDocumentWithId(docId)
+      if (!doc) {
+        return
+      }
+
+      const modal = $q.dialog({
+        component: FetchSuggestionsModal,
+        componentProps: { doc }
+      })
+
+      modal.onOk((edges) => {
+        edges.forEach((edge, index) => {
+          insertEdge(edge)
+          if (index === edges.length - 1) {
+            refreshGraph()
+          }
+        })
+      })
+    }
+
     const resetGraph = () => {
       resetState()
       hideTooltip()
@@ -620,7 +643,9 @@ export default defineComponent({
       deleteEdge,
       zoomIn,
       zoomOut,
-      zoomReset
+      zoomReset,
+
+      openSuggestionsModal
     }
   }
 })
