@@ -15,10 +15,20 @@ const adminMetaData = {
 
 const routes = [
   {
+    path: '/',
+    beforeEnter: (to, from, next) => {
+      next({ path: '/app' })
+    }
+  },
+  {
     path: '/login',
     component: () => import('layouts/LoginCardLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/Auth/Login.vue'), name: 'login' }
+      {
+        path: '',
+        component: () => import('pages/Auth/Login.vue'),
+        name: 'login'
+      }
     ]
   },
 
@@ -48,7 +58,12 @@ const routes = [
     path: '/app',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/App.vue'), name: 'app', meta: authMetaDeta('Home') }
+      {
+        path: '',
+        component: () => import('pages/App.vue'),
+        name: 'app',
+        meta: authMetaDeta('Home')
+      }
     ]
   },
 
@@ -56,7 +71,12 @@ const routes = [
     path: '/team/:id',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/TeamManagement/TeamManagement.vue'), name: 'manageTeam', meta: authMetaDeta('Edit Team') }
+      {
+        path: '',
+        component: () => import('pages/TeamManagement/TeamManagement.vue'),
+        name: 'manageTeam',
+        meta: authMetaDeta('Edit Team')
+      }
     ]
   },
 
